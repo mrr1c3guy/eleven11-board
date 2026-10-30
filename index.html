@@ -68,6 +68,17 @@ textarea{min-height:60px;resize:vertical}
 .cm{border-left:2px solid var(--line);padding:2px 0 2px 10px;display:grid;gap:2px;font-size:14px}
 .cm .meta{font-size:10px}
 .cms{display:grid;gap:10px}
+.lwrap{grid-column:1/-1;border-top:1px solid var(--line);padding-top:18px}
+.lwrap h4{margin:0 0 10px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);font-weight:500}
+.lyr{display:grid;gap:14px;margin-top:12px;columns:2 300px;column-gap:28px;display:block}
+.ls{break-inside:avoid;border-left:3px solid var(--mc);padding:2px 0 2px 12px;margin-bottom:14px}
+.lh{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-bottom:4px}
+.ll{font-size:16px;line-height:1.5}
+.lsplit{display:flex;flex-wrap:wrap;gap:6px 14px;font-family:var(--mono);font-size:12px;color:var(--ink2)}
+.lsplit i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.lbar{display:flex;gap:2px;height:6px;border-radius:999px;overflow:hidden;margin-top:6px}
+.lyta{min-height:360px!important;font-family:var(--mono);font-size:13px!important;line-height:1.5}
+.lhist{margin-top:10px}.lhist summary{cursor:pointer}.lhist details{margin:6px 0 0 10px;font-size:13px}.lhist pre{white-space:pre-wrap;font-family:var(--mono);font-size:12px;background:var(--panel);padding:10px;border-radius:6px}
 .radar{display:grid;grid-template-columns:minmax(0,1fr);justify-items:center;gap:6px}
 .radar svg{width:100%;max-width:340px;height:auto}
 .radar .hit{cursor:pointer}
@@ -145,6 +156,8 @@ const PEOPLE=["Tino","BJ","Phoi","Happee"];
 const STATUS=["Demo","Writing","Production","Vocals","Mix & Master","Happee-Go","Done"];
 const AXES=["Catchy","Lyrics","Vocals","Groove","Vibe"];
 const ROLES=["Lyrics","Melody","Topline","Production","Other"];
+const MEMBERS=[{k:"CJ",c:"#a8c6d2"},{k:"SWAGGY",n:"Swaggy",c:"#e0b267"},{k:"AUDREY",n:"Audrey",c:"#86c2a6"},{k:"JADE",n:"Jade",c:"#d39cc4"}];
+let lyrEdit=null,lyrOld=null;
 const DEMOS=[{"id": "d01", "title": "Ok Na Ko", "file": "OK N KO_V2_300326_32bit_P2.wav", "date": "2026-03-30", "note": "V2"}, {"id": "d02", "title": "Ok Na Ko (reggaeton idea)", "file": "ok na ko reggaeton idea.mp3", "date": "2026-05-10", "note": "idea"}, {"id": "d03", "title": "Don't Play", "file": "DONT PLAY-cjRAP .mp3", "date": "2026-01-30", "note": "cj rap version"}, {"id": "d04", "title": "1111", "file": "1111 ROUGH DEMO.mp3", "date": "2026-01-29", "note": "rough demo"}, {"id": "d05", "title": "No Rush", "file": "NO RUSH NEW VERSION.mp3", "date": "2026-01-29", "note": "new version"}, {"id": "d06", "title": "On My Way", "file": "ON MY WAY mix1.mp3", "date": "2025-12-26", "note": "mix 1"}, {"id": "d07", "title": "Raya", "file": "RAYA DEMO2.mp3", "date": "2025-11-25", "note": "demo 2"}, {"id": "d08", "title": "Neon Lights", "file": "NEON LIGHTS - 3R Mix V1.mp3", "date": "2025-11-16", "note": "3R mix v1"}, {"id": "d09", "title": "Ignite", "file": "IGNITE -Mix 3R V2.mp3", "date": "2025-11-15", "note": "3R mix v2"}, {"id": "d10", "title": "Ghost", "file": "GHOST DEMO3.mp3", "date": "2025-11-15", "note": "demo 3"}, {"id": "d11", "title": "Don't Mean a Thing", "file": "DONT-MEAN-A-THING-IDEA.mp3", "date": "2025-11-13", "note": "idea"}, {"id": "d12", "title": "Burnin", "file": "BURNIN_DEMO3.mp3", "date": "2025-11-06", "note": "demo 3"}, {"id": "d13", "title": "We Shine", "file": "WE SHINE DEMO.mp3", "date": "2025-11-05", "note": "demo"}, {"id": "d14", "title": "Fadeproof", "file": "FADEPROOF_DEMO2.mp3", "date": "2025-11-04", "note": "demo 2"}, {"id": "d15", "title": "Delulu", "file": "DELULU DEMO.mp3", "date": "2025-11-02", "note": "demo"}, {"id": "d16", "title": "Dreams & Duty", "file": "Dreams & Duty DEMO.mp3", "date": "2025-10-31", "note": "demo"}, {"id": "d17", "title": "Quiet House", "file": "QUIET HOUSE DEMO.mp3", "date": "2025-10-30", "note": "demo"}];
 const SONGS=[
  {id:"s5",title:"Ok Na Ko",file:"OK NA KO (DEMO26).mp3",focus:true},
@@ -182,6 +195,19 @@ function radarSvg(s){const W=300,cx=150,cy=150,R=100,n=AXES.length;const ang=i=>
   if(A&&A.score!=null)g+=`<polygon points="${A.ax.map((v,i)=>pt(i,v||0).join(",")).join(" ")}" fill="var(--accent)" fill-opacity=".35" stroke="var(--accent)" stroke-width="2"/>`;
   AXES.forEach((a,i)=>[1,2,3].forEach(k=>{const [x,y]=pt(i,k),on=mine[i]===k;g+=`<g class="hit" data-ax="${i}" data-v="${k}"><circle cx="${x}" cy="${y}" r="13" fill="transparent"/><circle cx="${x}" cy="${y}" r="${on?7:4.5}" fill="${on?"var(--ink)":"var(--bg)"}" stroke="var(--ink3)"/></g>`}));
   return g+"</svg>"}
+function isHead(l){const t=l.trim();if(!t)return false;if(/^\[.*\]$/.test(t))return true;const base=t.split("(")[0].trim();return base.length>1&&base.length<60&&/[A-Z]/.test(base)&&base===base.toUpperCase()&&!/[a-z]/.test(base)}
+function whoIn(t){const u=t.toUpperCase();if(/\bALL\b/.test(u))return MEMBERS.map(m=>m.k);return MEMBERS.filter(m=>new RegExp("\\b"+m.k+"\\b").test(u)).map(m=>m.k)}
+function lyrHtml(text){const lines=String(text||"").replace(/\r/g,"").split("\n");let cur=[],out="",count={};MEMBERS.forEach(m=>count[m.k]=0);let open=false;
+  lines.forEach(l=>{if(isHead(l)){const w=whoIn(l);cur=w;const col=w.length===1?MEMBERS.find(m=>m.k===w[0]).c:w.length?"var(--ink)":"var(--line)";if(open)out+="</div>";out+=`<div class="ls" style="--mc:${col}"><div class="lh">${esc(l.trim().replace(/^\[|\]$/g,""))}</div>`;open=true}
+   else if(l.trim()){if(!open){out+=`<div class="ls" style="--mc:var(--line)">`;open=true}out+=`<div class="ll">${esc(l)}</div>`;cur.forEach(k=>count[k]++)}});
+  if(open)out+="</div>";const tot=Object.values(count).reduce((a,b)=>a+b,0);
+  const split=tot?`<div class="lsplit">${MEMBERS.map(m=>`<span><i style="background:${m.c}"></i>${esc(m.n||m.k)} ${count[m.k]}</span>`).join("")}</div><div class="lbar">${MEMBERS.map(m=>count[m.k]?`<b style="flex:${count[m.k]};background:${m.c}"></b>`:"").join("")}</div>`:"";
+  return split+`<div class="lyr">${out}</div>`}
+function lyrBlock(s,d){const hist=d.lyricsHistory||[];
+  if(lyrEdit===s.id)return `<div class="lwrap"><h4>Lyrics</h4><textarea id="lyt" class="lyta" placeholder="Paste the lyrics. Put the singer in the section title, e.g. VERSE 1 – SWAGGY">${esc(d.lyrics||"")}</textarea><div class="note">Section titles in CAPS with a name (CJ, SWAGGY, AUDREY, JADE or ALL) get her colour.</div><div style="display:flex;gap:8px;margin-top:8px"><button class="pill on" id="lys">Save lyrics</button><button class="pill" id="lyx">Cancel</button></div></div>`;
+  return `<div class="lwrap"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><h4>Lyrics</h4><button class="pill" id="lye">${d.lyrics?"Edit":"+ Add lyrics"}</button></div>
+  ${d.lyrics?lyrHtml(d.lyrics)+`<div class="meta" style="margin-top:8px">${d.lyricsBy?"Last edit "+esc(d.lyricsBy)+" · "+fmt(d.lyricsTs):""}</div>`:`<div class="empty">No lyrics yet.</div>`}
+  ${hist.length?`<details class="lhist"><summary class="meta">Older versions (${hist.length})</summary>${hist.map(v=>`<details><summary>${esc(v.by||"")} · ${fmt(v.ts)}</summary><pre>${esc(v.text)}</pre></details>`).join("")}</details>`:""}</div>`}
 function detail(s){const d=songs[s.id]||{};const vs=d.versions||[];const pv=vs[playIdx[s.id]??vs.length-1];const sp=d.splits||[];const tot=sp.reduce((a,x)=>a+(+x.pct||0),0);const cm=comments.filter(c=>c.song===s.id).sort((a,b)=>a.ts-b.ts);const A=kc(s.id);
   return `<div class="det">
   <div class="col">
@@ -196,7 +222,7 @@ function detail(s){const d=songs[s.id]||{};const vs=d.versions||[];const pv=vs[p
    <div><h4>Rating ${A&&A.score!=null?"· "+A.score.toFixed(1)+" / 11":""}</h4><div class="radar">${radarSvg(s)}<div class="note">Tap each axis: inner = not there yet, outer = nailed it. Average of everyone, scored out of 11.</div></div></div>
    <div><h4>Feedback</h4><div class="cms">${cm.length?cm.map(c=>`<div class="cm"><span class="meta">${esc(c.name)} · ${fmt(c.ts)}</span>${esc(c.text)}</div>`).join(""):`<div class="empty">No feedback yet.</div>`}</div>
     <textarea id="ct" placeholder="Feedback on ${esc(s.title)}"></textarea><div style="margin-top:6px"><button class="pill on" id="cb">Save</button></div></div>
-  </div></div>`}
+  </div>${lyrBlock(s,d)}</div>`}
 function calHtml(){const y=calMonth.getFullYear(),m=calMonth.getMonth();const first=new Date(y,m,1);const off=(first.getDay()+6)%7;const start=new Date(y,m,1-off);const today=new Date().toDateString();
   const by={};events.forEach(e=>(by[e.date]=by[e.date]||[]).push(e));
   let c=["Mo","Tu","We","Th","Fr","Sa","Su"].map(x=>`<div class="h">${x}</div>`).join("");
@@ -250,6 +276,9 @@ function bind(){const $=s=>document.querySelector(s),$$=s=>document.querySelecto
    $$("[data-sp]").forEach(i=>i.onchange=()=>{const a=sp();a[+i.dataset.sp].pct=i.value===""?null:+i.value;patchSong(s.id,{splits:a})});
    $$("[data-sx]").forEach(i=>i.onclick=()=>{const a=sp();a.splice(+i.dataset.sx,1);patchSong(s.id,{splits:a})});
    bindRadar(s);
+   if($("#lye"))$("#lye").onclick=()=>{if(needName())return;lyrEdit=s.id;render();const t=$("#lyt");if(t)t.focus()};
+   if($("#lyx"))$("#lyx").onclick=()=>{lyrEdit=null;document.activeElement&&document.activeElement.blur();render()};
+   if($("#lys"))$("#lys").onclick=()=>{const t=$("#lyt").value.replace(/\s+$/,"");const d=songs[s.id]||{};const hist=(d.lyricsHistory||[]).slice();if(d.lyrics&&d.lyrics!==t)hist.unshift({text:d.lyrics,by:d.lyricsBy||"",ts:d.lyricsTs||0});lyrEdit=null;document.activeElement&&document.activeElement.blur();patchSong(s.id,{lyrics:t,lyricsBy:me,lyricsTs:Date.now(),lyricsHistory:hist.slice(0,10)});toast("Lyrics saved")};
    $("#cb").onclick=async()=>{if(needName())return;const t=$("#ct").value.trim();if(!t||!db)return;try{await db.collection("comments").add({song:s.id,text:t,name:me,ts:Date.now()});toast("Saved")}catch{toast("Could not save")}};
   }
   $$("[data-td]").forEach(c=>c.onchange=()=>{const t=todos.find(x=>x.id===c.dataset.td);if(t)save("todos/"+t.id,Object.assign({},t,{done:c.checked,doneBy:me}))});
