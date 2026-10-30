@@ -1,0 +1,293 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>ELEVEN11 Board</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=DM+Mono:wght@400;500&family=Michroma&display=swap">
+<style>
+/* Layout: Swiss status board. Big tight wordmark, tiny corner meta, black pill controls, thin lines, one soft coral accent. */
+:root{
+  --bg:#ebebe8; --panel:#f4f4f1; --ink:#161617; --ink2:#5b5b57; --ink3:#9a9a94; --line:#d6d6d0;
+  --accent:#a8c6d2; --accent-soft:#d9e6ec; --pill:#161617; --pill-ink:#f4f4f1; --ok:#6fae93; --warn:#d9a24f;
+  --box:"Michroma","Archivo",sans-serif; --sans:"Archivo","Helvetica Neue",Arial,sans-serif; --mono:"DM Mono",ui-monospace,Menlo,monospace;
+  --grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .07 0'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141415; --panel:#1b1b1d; --ink:#efefea; --ink2:#b0b0aa; --ink3:#6f6f6a; --line:#2c2c2f;
+  --accent:#9fbfcc; --accent-soft:#28373e; --pill:#efefea; --pill-ink:#141415; --ok:#6fae93; --warn:#d9a24f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141415; --panel:#1b1b1d; --ink:#efefea; --ink2:#b0b0aa; --ink3:#6f6f6a; --line:#2c2c2f;
+  --accent:#9fbfcc; --accent-soft:#28373e; --pill:#efefea; --pill-ink:#141415; --ok:#6fae93; --warn:#d9a24f; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:#6f7d82 url("strip/room.jpg") center center/cover no-repeat fixed;color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.45;padding-inline:clamp(16px,6vw,140px);padding-block:32px 100px;min-height:100vh}
+@media (max-width:900px){body{background-attachment:scroll}}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:1000px;margin:0 auto;display:grid;gap:36px;background:color-mix(in srgb,var(--bg) 88%,transparent) var(--grain);padding:clamp(20px,4vw,44px);box-shadow:0 40px 90px rgba(0,0,0,.4)}
+@supports (backdrop-filter:blur(1px)){.wrap{backdrop-filter:blur(10px)}}
+.meta{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
+.top{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-start}
+.top .who{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.plus{font-family:var(--mono);color:var(--ink3);margin-right:6px}
+h1{margin:0;font-family:var(--box);font-size:clamp(30px,8vw,86px);font-weight:400;letter-spacing:-.01em;line-height:1;text-transform:uppercase;text-wrap:balance}
+h1 em{font-style:normal;color:var(--accent)}
+h1 small{display:block;font-size:.34em;letter-spacing:.14em;color:var(--ink2);margin-top:.35em}
+h2{margin:0;font-family:var(--box);font-size:16px;font-weight:400;letter-spacing:.02em;text-transform:uppercase}
+.pill{border:1.5px solid var(--ink);background:transparent;border-radius:4px;padding:5px 13px;font-size:13px;cursor:pointer}
+.pill[aria-pressed="true"],.pill.on{background:var(--pill);color:var(--pill-ink)}
+.pill:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.prog{display:grid;gap:10px}
+.prog .row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.prog .big{font-family:var(--box);font-size:clamp(30px,5vw,48px);font-weight:400;letter-spacing:0;line-height:1;font-variant-numeric:tabular-nums}
+.bar{height:12px;border-radius:999px;background:var(--line);overflow:hidden;display:flex;gap:2px}
+.bar i{flex:1;background:var(--line)}
+.bar i.go{background:var(--accent)}
+.bar i.wip{background:var(--accent-soft)}
+section{display:grid;gap:14px;scroll-margin-top:16px}
+.sh{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;border-top:1.5px solid var(--ink);padding-top:10px}
+.tbl{display:grid;gap:0;border-top:1px solid var(--line)}
+.srow{display:grid;grid-template-columns:34px minmax(0,1.4fr) minmax(0,1fr) 88px;gap:6px 12px;align-items:center;padding:14px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.srow:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.srow .nr{font-family:var(--mono);color:var(--ink3);font-size:12px}
+.srow .t{font-family:var(--box);font-size:15px;font-weight:400;letter-spacing:.01em;text-transform:uppercase}
+.srow .t small{display:block;font-family:var(--mono);font-size:11px;font-weight:400;color:var(--ink2);letter-spacing:.04em}
+.tag{display:inline-block;border-radius:3px;padding:3px 11px;font-size:12px;background:var(--pill);color:var(--pill-ink);white-space:nowrap}
+.tag.soft{background:var(--accent-soft);color:var(--ink)}
+.tag.go{background:var(--accent);color:#161617}
+.fx{display:inline-block;vertical-align:middle;margin-left:10px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;padding:2px 8px;border-radius:3px;background:var(--accent);color:#161617}
+.kc{font-family:var(--mono);font-size:12px;color:var(--ink2);text-align:right}
+@media (max-width:640px){.srow{grid-template-columns:28px minmax(0,1fr) 72px}.srow .st{grid-column:2}.srow .kc{grid-column:3;grid-row:1}}
+.det{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;padding:18px 4px 26px;border-bottom:1px solid var(--line);background:var(--panel)}
+@media (max-width:760px){.det{grid-template-columns:1fr}}
+.col{display:grid;gap:18px;align-content:start;min-width:0}
+.col h4{margin:0 0 6px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);font-weight:500}
+input[type=text],input[type=date],input[type=number],select,textarea{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:14px;min-width:0;width:100%}
+textarea{min-height:60px;resize:vertical}
+.stat{display:flex;gap:6px;flex-wrap:wrap}
+.splits{display:grid;gap:6px}
+.sp{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 64px 24px;gap:6px;align-items:center}
+.sp button{border:0;background:none;color:var(--ink3);cursor:pointer;font-size:18px}
+.note{font-size:12px;color:var(--ink2)}
+.warn{color:var(--warn)}
+.cm{border-left:2px solid var(--line);padding:2px 0 2px 10px;display:grid;gap:2px;font-size:14px}
+.cm .meta{font-size:10px}
+.cms{display:grid;gap:10px}
+.radar{display:grid;grid-template-columns:minmax(0,1fr);justify-items:center;gap:6px}
+.radar svg{width:100%;max-width:340px;height:auto}
+.radar .hit{cursor:pointer}
+.drow{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:12px 4px;border-bottom:1px solid var(--line)}
+.drow .t{font-family:var(--box);font-size:13px;text-transform:uppercase;letter-spacing:.01em}
+.drow .t small{display:block;font-family:var(--mono);font-size:11px;color:var(--ink2);text-transform:none;letter-spacing:.04em;margin-top:2px}
+.drow audio{grid-column:2/-1;width:100%;height:34px}
+.drow .pick{font-size:12px;padding:4px 10px}
+.drow.on .t{color:var(--ink)}
+.drow.on{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.two{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:36px}
+@media (max-width:820px){.two{grid-template-columns:1fr}}
+.todo{display:grid;grid-template-columns:22px minmax(0,1fr) auto auto;gap:10px;align-items:start;padding:9px 2px;border-bottom:1px solid var(--line)}
+.todo.done .tx{text-decoration:line-through;color:var(--ink3)}
+.todo input{width:18px;height:18px;accent-color:var(--accent);margin-top:2px}
+.todo button{border:0;background:none;color:var(--ink3);cursor:pointer;font-size:18px;line-height:1}
+.add{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:6px;margin-top:6px}
+@media (max-width:520px){.add{grid-template-columns:1fr auto}.add select{grid-column:1/-1}}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.cal .h{background:var(--bg);padding:6px;font-family:var(--mono);font-size:10px;color:var(--ink3);text-align:center}
+.cal .d{background:var(--panel);min-height:76px;padding:5px;cursor:pointer;display:flex;flex-direction:column;gap:3px;min-width:0}
+.cal .d.o{opacity:.45}
+.cal .d .n{font-family:var(--mono);font-size:11px;color:var(--ink2)}
+.cal .d.today .n{background:var(--accent);color:#161617;border-radius:999px;padding:0 6px;align-self:flex-start}
+.cal .ev{font-size:11px;line-height:1.2;background:var(--pill);color:var(--pill-ink);border-radius:5px;padding:2px 5px;overflow-wrap:anywhere}
+.cal .ev.dl{background:transparent;color:var(--ink);border:1.2px dashed var(--ink3)}
+@media (max-width:640px){.cal .d{min-height:54px}.cal .ev{font-size:9px}}
+.fab{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));width:54px;height:54px;border-radius:50%;border:0;background:var(--pill);color:var(--pill-ink);cursor:pointer;z-index:50;display:grid;place-items:center}
+.badge{position:absolute;top:-4px;right:-4px;background:var(--accent);color:#161617;font-family:var(--mono);font-size:10px;font-weight:600;min-width:19px;height:19px;border-radius:10px;display:grid;place-items:center;padding:0 5px}
+.chat{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:84px;width:min(360px,calc(100vw - 32px));height:min(460px,calc(100vh - 140px));background:var(--panel);border:1.5px solid var(--ink);border-radius:14px;display:grid;grid-template-rows:auto minmax(0,1fr) auto;z-index:51;overflow:hidden}
+.chat .hd{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
+.chat .ms{overflow:auto;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.msg{max-width:84%;align-self:flex-start;background:var(--bg);border:1px solid var(--line);border-radius:12px 12px 12px 3px;padding:6px 10px;font-size:14px;overflow-wrap:anywhere}
+.msg.me{align-self:flex-end;background:var(--pill);color:var(--pill-ink);border-radius:12px 12px 3px 12px}
+.msg .meta{display:block;font-size:9px;opacity:.7}
+.chat form{display:flex;gap:6px;padding:10px;border-top:1px solid var(--line)}
+.bellpop{position:absolute;right:0;top:calc(100% + 8px);width:min(320px,calc(100vw - 32px));background:var(--panel);border:1.5px solid var(--ink);border-radius:12px;z-index:60;max-height:60vh;overflow:auto}
+.bellpop .it{padding:10px 14px;border-bottom:1px solid var(--line);font-size:13px;display:grid;gap:2px}
+.bellpop .it.new{box-shadow:inset 3px 0 0 var(--accent)}
+.rel{position:relative}
+.empty{color:var(--ink3);font-size:13px}
+a{color:inherit}
+.link{font-family:var(--mono);font-size:12px}
+.logo{width:64px;height:64px;border-radius:50%;display:block}
+.brand{display:flex;gap:14px;align-items:center}
+.vers{display:grid;gap:2px;margin:8px 0}
+.ver{display:flex;justify-content:space-between;gap:8px;padding:5px 8px;border-radius:4px;cursor:pointer;font-size:13px;overflow-wrap:anywhere}
+.ver.on{background:var(--pill);color:var(--pill-ink)}
+audio{width:100%;height:38px}
+.upcard{display:grid;gap:3px;padding:12px 14px;border:1.5px dashed var(--ink3);border-radius:6px;text-decoration:none;margin-top:10px}
+.upcard:hover{border-color:var(--accent);background:var(--accent-soft)}
+.upcard b{font-size:14px}
+.upcard code{font-family:var(--mono);font-size:11px;color:var(--ink2);overflow-wrap:anywhere}
+footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px}
+.star{width:34px;height:34px;display:inline-block}
+#gate{min-height:80vh;display:grid;place-items:center}
+.gbox{display:grid;gap:14px;width:min(420px,100%);background:color-mix(in srgb,var(--bg) 90%,transparent) var(--grain);padding:clamp(22px,5vw,40px);box-shadow:0 40px 90px rgba(0,0,0,.4)}
+.gbox h1{font-size:clamp(30px,9vw,54px)}
+.gbox input{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:16px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div id="gate" hidden><form id="gf" class="gbox"><div class="meta"><span class="plus">+</span>Tracksetters</div><h1>ELEVEN<em>11</em><small>status board</small></h1><input type="password" id="gp" placeholder="Team password" autocomplete="current-password" required><button class="pill on" type="submit">Enter</button><div class="note warn" id="gm" aria-live="polite"></div></form></div>
+<div class="wrap" id="app" hidden></div>
+<button class="fab" id="fab" aria-label="Open chat" hidden><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/></svg><span class="badge" id="fbadge" hidden></span></button>
+<div class="chat" id="chat" hidden><div class="hd"><b>Chat</b><button class="pill" id="chx">Close</button></div><div class="ms" id="chms"></div><form id="chf"><input type="text" id="chin" placeholder="Message" autocomplete="off" maxlength="1500"><button class="pill on" type="submit">Send</button></form></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+<script>
+// ---------- STATIC DATA ----------
+const PEOPLE=["Tino","BJ","Phoi","Happee"];
+const STATUS=["Demo","Writing","Production","Vocals","Mix & Master","Happee-Go","Done"];
+const AXES=["Catchy","Lyrics","Vocals","Groove","Vibe"];
+const ROLES=["Lyrics","Melody","Topline","Production","Other"];
+const DEMOS=[{"id": "d01", "title": "Ok Na Ko", "file": "OK N KO_V2_300326_32bit_P2.wav", "date": "2026-03-30", "note": "V2"}, {"id": "d02", "title": "Ok Na Ko (reggaeton idea)", "file": "ok na ko reggaeton idea.mp3", "date": "2026-05-10", "note": "idea"}, {"id": "d03", "title": "Don't Play", "file": "DONT PLAY-cjRAP .mp3", "date": "2026-01-30", "note": "cj rap version"}, {"id": "d04", "title": "1111", "file": "1111 ROUGH DEMO.mp3", "date": "2026-01-29", "note": "rough demo"}, {"id": "d05", "title": "No Rush", "file": "NO RUSH NEW VERSION.mp3", "date": "2026-01-29", "note": "new version"}, {"id": "d06", "title": "On My Way", "file": "ON MY WAY mix1.mp3", "date": "2025-12-26", "note": "mix 1"}, {"id": "d07", "title": "Raya", "file": "RAYA DEMO2.mp3", "date": "2025-11-25", "note": "demo 2"}, {"id": "d08", "title": "Neon Lights", "file": "NEON LIGHTS - 3R Mix V1.mp3", "date": "2025-11-16", "note": "3R mix v1"}, {"id": "d09", "title": "Ignite", "file": "IGNITE -Mix 3R V2.mp3", "date": "2025-11-15", "note": "3R mix v2"}, {"id": "d10", "title": "Ghost", "file": "GHOST DEMO3.mp3", "date": "2025-11-15", "note": "demo 3"}, {"id": "d11", "title": "Don't Mean a Thing", "file": "DONT-MEAN-A-THING-IDEA.mp3", "date": "2025-11-13", "note": "idea"}, {"id": "d12", "title": "Burnin", "file": "BURNIN_DEMO3.mp3", "date": "2025-11-06", "note": "demo 3"}, {"id": "d13", "title": "We Shine", "file": "WE SHINE DEMO.mp3", "date": "2025-11-05", "note": "demo"}, {"id": "d14", "title": "Fadeproof", "file": "FADEPROOF_DEMO2.mp3", "date": "2025-11-04", "note": "demo 2"}, {"id": "d15", "title": "Delulu", "file": "DELULU DEMO.mp3", "date": "2025-11-02", "note": "demo"}, {"id": "d16", "title": "Dreams & Duty", "file": "Dreams & Duty DEMO.mp3", "date": "2025-10-31", "note": "demo"}, {"id": "d17", "title": "Quiet House", "file": "QUIET HOUSE DEMO.mp3", "date": "2025-10-30", "note": "demo"}];
+const SONGS=[
+ {id:"s5",title:"Ok Na Ko",file:"OK NA KO (DEMO26).mp3",focus:true},
+ {id:"s1",title:"Resist",file:"RESIST DEMO MIX.mp3",focus:true},
+ {id:"s4",title:"OneOne",file:"OneOne Demo vs8.mp3"},
+ {id:"s2",title:"I Can Feel It's True",file:"i can feel its true (demo mix 2).mp3"},
+ {id:"s3",title:"One Look",file:"One Look Demo.mp3"},
+ {id:"s6",title:"Song 6",file:""}];
+// ---------- STATE ----------
+let assets=null,playIdx={},db=null,songs={},comments=[],todos=[],events=[],chat=[];
+let me="";try{me=localStorage.getItem("e11.name")||""}catch{}
+let demosOpen=false,demoPicks={};
+let openId=null,calMonth=new Date(),chatOpen=false,bellOpen=false,pending=false;
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=ts=>{try{return new Date(ts).toLocaleDateString("en-GB",{day:"2-digit",month:"2-digit"})}catch{return""}};
+const st=s=>(songs[s.id]&&songs[s.id].status)||"Demo";
+const isGo=s=>["Happee-Go","Done"].includes(st(s));
+const lastSeenKey=()=>"e11.seen."+me;
+const getSeen=()=>{try{return +localStorage.getItem(lastSeenKey())||Date.now()-7*864e5}catch{return 0}};
+function kc(id){const r=(songs[id]&&songs[id].ratings)||{};const all=Object.values(r);if(!all.length)return null;
+  const ax=AXES.map((_,i)=>{const v=all.map(p=>p[i]).filter(x=>typeof x==="number");return v.length?v.reduce((a,b)=>a+b,0)/v.length:null});
+  const vals=ax.filter(x=>x!=null);return{ax,score:vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/(vals.length*3)*110)/10:null}}
+async function save(path,data){ if(!db) return; try{await db.doc(path).set(data)}catch(e){toast("Could not save")} }
+function patchSong(id,p,quiet){songs[id]=Object.assign({},songs[id],p,{ts:Date.now(),by:me});save("songs/"+id,songs[id]);if(!quiet)render()}
+function refreshRadar(s){const box=document.querySelector(".radar");if(!box)return;const svg=box.querySelector("svg");if(svg)svg.outerHTML=radarSvg(s);const A=kc(s.id);const h=box.parentElement.querySelector("h4");if(h)h.textContent="Rating "+(A&&A.score!=null?"· "+A.score.toFixed(1)+" / 11":"");bindRadar(s)}
+function bindRadar(s){document.querySelectorAll(".radar .hit").forEach(h=>h.onclick=()=>{if(needName())return;const r=Object.assign({},(songs[s.id]||{}).ratings);const mine=(r[me]||[]).slice();const i=+h.dataset.ax,v=+h.dataset.v;mine[i]=mine[i]===v?null:v;r[me]=mine;patchSong(s.id,{ratings:r},true);refreshRadar(s)})}
+let tt;function toast(m){let t=document.getElementById("toast");if(!t){t=document.createElement("div");t.id="toast";t.style.cssText="position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--pill);color:var(--pill-ink);padding:8px 16px;border-radius:999px;font-size:13px;z-index:99";document.body.appendChild(t)}t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2200)}
+function needName(){if(!me){toast("Pick your name at the top first");return true}return false}
+// ---------- RENDER ----------
+function radarSvg(s){const W=300,cx=150,cy=150,R=100,n=AXES.length;const ang=i=>-Math.PI/2+i*2*Math.PI/n;const pt=(i,v)=>[cx+Math.cos(ang(i))*R*v/3,cy+Math.sin(ang(i))*R*v/3];
+  const mine=(((songs[s.id]||{}).ratings||{})[me])||[];const A=kc(s.id);
+  let g=`<svg viewBox="0 0 ${W} ${W}" role="img" aria-label="Rating Radar">`;
+  [1,2,3].forEach(k=>g+=`<polygon points="${AXES.map((_,i)=>pt(i,k).join(",")).join(" ")}" fill="none" stroke="var(--line)"/>`);
+  AXES.forEach((a,i)=>{const [x,y]=pt(i,3.5),[ex,ey]=pt(i,3);g+=`<line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="var(--line)"/><text x="${x}" y="${y+4}" text-anchor="${Math.abs(x-cx)<10?"middle":x>cx?"start":"end"}" font-size="12" font-weight="600" fill="var(--ink)">${a}</text>`});
+  if(A&&A.score!=null)g+=`<polygon points="${A.ax.map((v,i)=>pt(i,v||0).join(",")).join(" ")}" fill="var(--accent)" fill-opacity=".35" stroke="var(--accent)" stroke-width="2"/>`;
+  AXES.forEach((a,i)=>[1,2,3].forEach(k=>{const [x,y]=pt(i,k),on=mine[i]===k;g+=`<g class="hit" data-ax="${i}" data-v="${k}"><circle cx="${x}" cy="${y}" r="13" fill="transparent"/><circle cx="${x}" cy="${y}" r="${on?7:4.5}" fill="${on?"var(--ink)":"var(--bg)"}" stroke="var(--ink3)"/></g>`}));
+  return g+"</svg>"}
+function detail(s){const d=songs[s.id]||{};const vs=d.versions||[];const pv=vs[playIdx[s.id]??vs.length-1];const sp=d.splits||[];const tot=sp.reduce((a,x)=>a+(+x.pct||0),0);const cm=comments.filter(c=>c.song===s.id).sort((a,b)=>a.ts-b.ts);const A=kc(s.id);
+  return `<div class="det">
+  <div class="col">
+   <div><h4>Listen</h4>${d.audio?`<audio controls preload="none" src="${esc(d.audio)}"></audio>`:`<div class="empty">Audio coming soon.</div>`}</div>
+   <div><h4>Status</h4><div class="stat">${STATUS.map(x=>`<button class="pill" data-st="${x}" aria-pressed="${st(s)===x}">${x}</button>`).join("")}</div><div class="note" style="margin-top:6px">Only Happee can set Happee-Go and Done.</div></div>
+   <div><h4>Next step</h4><input type="text" id="nx" value="${esc(d.next||"")}" placeholder="What happens next?"></div>
+   <div><h4>Demo file</h4><input type="text" id="fl" value="${esc(d.file??s.file)}" placeholder="File name in the Demos folder"></div>
+   <div><h4>Publishing Splits</h4><div class="splits">${sp.map((x,i)=>`<div class="sp"><input type="text" data-sn="${i}" value="${esc(x.name)}" placeholder="Name"><select data-sr="${i}">${ROLES.map(r=>`<option ${x.role===r?"selected":""}>${r}</option>`).join("")}</select><input type="number" data-sp="${i}" value="${x.pct??""}" min="0" max="100" placeholder="%"><button data-sx="${i}" aria-label="remove">×</button></div>`).join("")}</div>
+    <div style="display:flex;gap:10px;align-items:center;margin-top:8px"><button class="pill" id="addsp">+ Writer</button><span class="note ${sp.length&&tot!==100?"warn":""}">${sp.length?"Total "+tot+" %"+(tot!==100?" (should be 100)":""):"Who co-wrote lyrics or melody?"}</span></div></div>
+  </div>
+  <div class="col">
+   <div><h4>Rating ${A&&A.score!=null?"· "+A.score.toFixed(1)+" / 11":""}</h4><div class="radar">${radarSvg(s)}<div class="note">Tap each axis: inner = not there yet, outer = nailed it. Average of everyone, scored out of 11.</div></div></div>
+   <div><h4>Feedback</h4><div class="cms">${cm.length?cm.map(c=>`<div class="cm"><span class="meta">${esc(c.name)} · ${fmt(c.ts)}</span>${esc(c.text)}</div>`).join(""):`<div class="empty">No feedback yet.</div>`}</div>
+    <textarea id="ct" placeholder="Feedback on ${esc(s.title)}"></textarea><div style="margin-top:6px"><button class="pill on" id="cb">Save</button></div></div>
+  </div></div>`}
+function calHtml(){const y=calMonth.getFullYear(),m=calMonth.getMonth();const first=new Date(y,m,1);const off=(first.getDay()+6)%7;const start=new Date(y,m,1-off);const today=new Date().toDateString();
+  const by={};events.forEach(e=>(by[e.date]=by[e.date]||[]).push(e));
+  let c=["Mo","Tu","We","Th","Fr","Sa","Su"].map(x=>`<div class="h">${x}</div>`).join("");
+  for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+   c+=`<div class="d ${d.getMonth()!==m?"o":""} ${d.toDateString()===today?"today":""}" data-day="${k}"><span class="n">${d.getDate()}</span>${(by[k]||[]).map(e=>`<span class="ev ${e.kind==="Deadline"?"dl":""}" data-ev="${e.id}">${esc(e.text)}</span>`).join("")}</div>`}
+  return `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="pill" id="cp">‹</button><b>${calMonth.toLocaleDateString("en-GB",{month:"long",year:"numeric"})}</b><button class="pill" id="cn">›</button></div><div class="cal">${c}</div>
+  <div class="add" id="evadd"><select id="evk"><option>Appointment</option><option>Deadline</option></select><input type="text" id="evt" placeholder="What is coming up? Tap a day to set the date"><button class="pill on" id="evb">Add</button></div><input type="date" id="evd" style="max-width:180px">`}
+function render(){
+  const ae=document.activeElement; if(ae&&["INPUT","TEXTAREA","SELECT"].includes(ae.tagName)&&document.getElementById("app").contains(ae)){pending=true;return}
+  if([...document.querySelectorAll("#app audio")].some(a=>!a.paused)){pending=true;return}
+  pending=false; const go=SONGS.filter(isGo).length;
+  const seen=getSeen(),items=notifs();const nNew=items.filter(x=>x.ts>seen).length;
+  const rows=SONGS.map((s,i)=>{const k=kc(s.id);const sp=(songs[s.id]||{}).splits||[];
+   return `<div class="srow" data-open="${s.id}"><span class="nr">${String(i+1).padStart(2,"0")}</span><div class="t">${esc(s.title)}${s.focus?`<span class="fx">Focus</span>`:""}<small>${esc(((songs[s.id]||{}).file??s.file)||"no file")}</small></div><span class="st"><span class="tag ${isGo(s)?"go":st(s)==="Demo"?"soft":""}">${st(s)}</span></span><span class="kc">${k&&k.score!=null?k.score.toFixed(1)+"/11":""}</span></div>${openId===s.id?detail(s):""}`}).join("");
+  const td=[...todos].sort((a,b)=>(a.done?1:0)-(b.done?1:0)||a.ts-b.ts);
+  document.getElementById("app").innerHTML=`
+  <div class="top"><div class="brand"><div class="meta"><span class="plus">+</span>debut EP · 6 songs · Tracksetters</div></div>
+   <div class="who">${PEOPLE.map(p=>`<button class="pill" data-me="${p}" aria-pressed="${me===p}">${p}</button>`).join("")}<span class="rel"><button class="pill" id="bell" aria-label="Notifications">Alerts${nNew?` <b>${nNew}</b>`:""}</button>${bellOpen?`<div class="bellpop">${items.length?items.map(x=>`<div class="it ${x.ts>seen?"new":""}"><span class="meta">${fmt(x.ts)}</span>${esc(x.text)}</div>`).join(""):`<div class="it empty">Nothing new.</div>`}</div>`:""}</span><button class="pill" id="theme" aria-label="Light or dark">◐</button></div></div>
+  <div><h1><span class="brand">ELEVEN<em>11</em></span><small>status board</small></h1></div>
+  <div class="prog"><div class="row"><div class="big">${go}<span style="color:var(--ink3)"> / 6</span></div><div class="meta">Songs with Happee-Go</div></div><div class="bar">${SONGS.map(s=>`<i class="${isGo(s)?"go":st(s)!=="Demo"?"wip":""}"></i>`).join("")}</div><div class="meta">dark = Happee-Go · light = in progress</div></div>
+  <section id="songs"><div class="sh"><h2>Songs</h2><span class="meta">Tap a song for details</span></div><div class="tbl">${rows}</div></section>
+  <section id="demos"><div class="sh"><h2>Demos</h2><div style="display:flex;gap:8px;align-items:center"><span class="meta">${DEMOS.length} songs · ${Object.values(demoPicks).filter(x=>x&&x.pick).length} shortlisted</span><button class="pill" id="dtog">${demosOpen?"Hide":"Show"}</button></div></div>
+  ${demosOpen?`<div class="meta" style="margin-top:-6px">Newest version of each song from the Dropbox demo folder, newest first. Shortlist what should move up to the EP.</div><div class="tbl">${DEMOS.map((d,i)=>{const pk=demoPicks[d.id]&&demoPicks[d.id].pick;return `<div class="drow ${pk?"on":""}"><span class="nr">${String(i+1).padStart(2,"0")}</span><div class="t">${esc(d.title)}<small>${esc(d.note)} · ${d.date.split("-").reverse().join(".")} · ${esc(d.file)}</small></div><button class="pill pick ${pk?"on":""}" data-pick="${d.id}">${pk?"Shortlisted":"Shortlist"}</button>${d.src?`<audio controls preload="none" src="${d.src}"></audio>`:""}</div>`}).join("")}</div>`:""}
+  </section>
+  <section><div class="sh"><h2>To do</h2><span class="meta">${td.filter(t=>!t.done).length} open</span></div>
+   <div>${td.length?td.map(t=>`<div class="todo ${t.done?"done":""}"><input type="checkbox" data-td="${t.id}" ${t.done?"checked":""} aria-label="done"><span class="tx">${esc(t.text)}</span><span class="tag soft">${esc(t.who)}</span><button data-tx="${t.id}" aria-label="delete">×</button></div>`).join(""):`<div class="empty" style="padding:8px 0">Nothing open yet. Add the first task below.</div>`}</div>
+   <div class="add"><select id="tw">${[...PEOPLE,"All"].map(p=>`<option ${p===me?"selected":""}>${p}</option>`).join("")}</select><input type="text" id="tt" placeholder="What needs to happen?"><button class="pill on" id="tb">+</button></div></section>
+  <footer><span class="meta">ELEVEN11 · Tracksetters</span><button class="pill" id="logout">Log out</button></footer>`;
+  bind();document.getElementById("fab").hidden=!db;
+}
+function notifs(){const meL=me.toLowerCase();const o=[];
+  comments.forEach(c=>{if((c.name||"").toLowerCase()!==meL)o.push({ts:c.ts,text:`${c.name} on ${(SONGS.find(s=>s.id===c.song)||{}).title}: ${c.text}`.slice(0,120)})});
+  todos.forEach(t=>{if((t.by||"").toLowerCase()!==meL&&!t.done)o.push({ts:t.ts,text:`${t.by} added a task: ${t.text}`})});
+  Object.entries(demoPicks).forEach(([id,v])=>{if(v&&v.pick&&(v.by||"").toLowerCase()!==meL){const d=DEMOS.find(x=>x.id===id);if(d)o.push({ts:v.ts||0,text:`${v.by} shortlisted the demo ${d.title}`})}});
+  SONGS.forEach(s=>{const d=songs[s.id];if(d&&d.ts&&d.by&&d.by.toLowerCase()!==meL&&d.status)o.push({ts:d.ts,text:`${d.by} set ${s.title} to ${d.status}`})});
+  return o.sort((a,b)=>b.ts-a.ts).slice(0,25)}
+function bind(){const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
+  $$("[data-me]").forEach(b=>b.onclick=()=>{me=b.dataset.me;try{localStorage.setItem("e11.name",me)}catch{}render();renderChat()});
+  $("#theme").onclick=()=>{const c=document.documentElement.getAttribute("data-theme");const n=c==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n)};
+  $("#bell").onclick=e=>{e.stopPropagation();bellOpen=!bellOpen;if(!bellOpen&&me){try{localStorage.setItem(lastSeenKey(),String(Date.now()))}catch{}}render()};
+  $$("[data-open]").forEach(r=>r.onclick=()=>{openId=openId===r.dataset.open?null:r.dataset.open;render()});
+  const s=SONGS.find(x=>x.id===openId);
+  if(s){
+   $$("[data-st]").forEach(b=>b.onclick=()=>{if(needName())return;const v=b.dataset.st;if(["Happee-Go","Done"].includes(v)&&me!=="Happee"){toast("Only Happee can set Happee-Go");return}patchSong(s.id,{status:v},true);$$("[data-st]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.st===v));const row=document.querySelector(`[data-open="${s.id}"] .tag`);if(row){row.textContent=v;row.className="tag "+(["Happee-Go","Done"].includes(v)?"go":v==="Demo"?"soft":"")}});
+   $("#nx").onchange=e=>patchSong(s.id,{next:e.target.value.trim()});
+   $("#fl").onchange=e=>patchSong(s.id,{file:e.target.value.trim()});
+   const sp=()=>((songs[s.id]||{}).splits||[]).map(x=>Object.assign({},x));
+   $("#addsp").onclick=()=>{if(needName())return;const a=sp();a.push({name:"",role:"Lyrics",pct:null});patchSong(s.id,{splits:a})};
+   $$("[data-sn]").forEach(i=>i.onchange=()=>{const a=sp();a[+i.dataset.sn].name=i.value.trim();patchSong(s.id,{splits:a})});
+   $$("[data-sr]").forEach(i=>i.onchange=()=>{const a=sp();a[+i.dataset.sr].role=i.value;patchSong(s.id,{splits:a})});
+   $$("[data-sp]").forEach(i=>i.onchange=()=>{const a=sp();a[+i.dataset.sp].pct=i.value===""?null:+i.value;patchSong(s.id,{splits:a})});
+   $$("[data-sx]").forEach(i=>i.onclick=()=>{const a=sp();a.splice(+i.dataset.sx,1);patchSong(s.id,{splits:a})});
+   bindRadar(s);
+   $("#cb").onclick=async()=>{if(needName())return;const t=$("#ct").value.trim();if(!t||!db)return;try{await db.collection("comments").add({song:s.id,text:t,name:me,ts:Date.now()});toast("Saved")}catch{toast("Could not save")}};
+  }
+  $$("[data-td]").forEach(c=>c.onchange=()=>{const t=todos.find(x=>x.id===c.dataset.td);if(t)save("todos/"+t.id,Object.assign({},t,{done:c.checked,doneBy:me}))});
+  $$("[data-tx]").forEach(b=>b.onclick=async()=>{try{await db.doc("todos/"+b.dataset.tx).delete()}catch{toast("Could not delete")}});
+  $("#tb").onclick=async()=>{if(needName())return;const t=$("#tt").value.trim();if(!t||!db)return;try{await db.collection("todos").add({text:t,who:$("#tw").value,by:me,done:false,ts:Date.now()});$("#tt").value=""}catch{toast("Could not save")}};
+  $("#dtog").onclick=()=>{demosOpen=!demosOpen;render()};
+  $$("[data-pick]").forEach(b=>b.onclick=()=>{if(needName())return;const id=b.dataset.pick;const cur=demoPicks[id]&&demoPicks[id].pick;demoPicks[id]={pick:!cur,by:me,ts:Date.now()};save("demopicks/"+id,demoPicks[id]);const row=b.closest(".drow");row.classList.toggle("on",!cur);b.classList.toggle("on",!cur);b.textContent=!cur?"Shortlisted":"Shortlist"});
+}
+["pause","ended"].forEach(ev=>document.addEventListener(ev,()=>setTimeout(()=>{if(pending)render()},50),true));
+document.addEventListener("focusout",()=>{setTimeout(()=>{if(pending)render()},50)});
+document.addEventListener("click",e=>{if(bellOpen&&!e.target.closest(".rel")){bellOpen=false;if(me){try{localStorage.setItem(lastSeenKey(),String(Date.now()))}catch{}}render()}});
+// ---------- CHAT ----------
+function renderChat(){const box=document.getElementById("chms");if(!box)return;
+  box.innerHTML=chat.length?chat.map(m=>`<div class="msg ${m.name===me?"me":""}"><span class="meta">${m.name===me?"":esc(m.name)+" · "}${fmt(m.ts)} ${new Date(m.ts).toTimeString().slice(0,5)}</span>${esc(m.text)}</div>`).join(""):`<div class="empty">No messages yet.</div>`;
+  box.scrollTop=box.scrollHeight;
+  const unread=chat.filter(m=>m.name!==me&&m.ts>chatSeen()).length;const b=document.getElementById("fbadge");b.hidden=!unread||chatOpen;b.textContent=unread>9?"9+":unread}
+const chatSeen=()=>{try{return +localStorage.getItem("e11.chat."+me)||0}catch{return 0}};
+document.getElementById("fab").onclick=()=>{chatOpen=!chatOpen;document.getElementById("chat").hidden=!chatOpen;if(chatOpen){try{localStorage.setItem("e11.chat."+me,String(Date.now()))}catch{}}renderChat();if(chatOpen)document.getElementById("chin").focus()};
+document.getElementById("chx").onclick=()=>{chatOpen=false;document.getElementById("chat").hidden=true;renderChat()};
+document.getElementById("chf").onsubmit=async e=>{e.preventDefault();if(needName())return;const i=document.getElementById("chin"),t=i.value.trim();if(!t||!db)return;i.value="";try{await db.collection("chat").add({text:t,name:me,ts:Date.now()})}catch{i.value=t;toast("Could not send")}};
+// ---------- BOOT ----------
+render();
+// ---------- FIREBASE ----------
+const FB_CONFIG=window.FB_CONFIG;const TEAM_EMAIL="team@eleven11-board.app";
+firebase.initializeApp(FB_CONFIG);const auth=firebase.auth();
+function startData(){
+  db=firebase.firestore();
+  const snap=(col,fn)=>db.collection(col).onSnapshot(s=>{fn(s.docs.map(d=>Object.assign({id:d.id},d.data())));render()},()=>{});
+  db.collection("songs").onSnapshot(s=>{songs={};s.docs.forEach(d=>songs[d.id]=d.data());render()},()=>{});
+  snap("comments",a=>comments=a);db.collection("demopicks").onSnapshot(s=>{demoPicks={};s.docs.forEach(d=>demoPicks[d.id]=d.data());render()},()=>{});snap("todos",a=>todos=a);
+  db.collection("chat").orderBy("ts","asc").limit(300).onSnapshot(s=>{chat=s.docs.map(d=>Object.assign({id:d.id},d.data()));renderChat()},()=>{});
+  render();
+}
+const gate=document.getElementById("gate");
+auth.onAuthStateChanged(u=>{if(u){gate.hidden=true;document.getElementById("app").hidden=false;if(!db)startData()}else{gate.hidden=false;document.getElementById("app").hidden=true;document.getElementById("fab").hidden=true}});
+document.getElementById("gf").onsubmit=async e=>{e.preventDefault();const pw=document.getElementById("gp").value;const m=document.getElementById("gm");m.textContent="";
+  try{await auth.signInWithEmailAndPassword(TEAM_EMAIL,pw)}catch(err){m.textContent="Wrong password"}};
+document.addEventListener("click",e=>{if(e.target&&e.target.id==="logout"){auth.signOut().then(()=>location.reload())}});
+</script>
+
+</body></html>
