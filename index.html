@@ -94,6 +94,11 @@ textarea{min-height:60px;resize:vertical}
 .drow .t{font-family:var(--box);font-size:13px;text-transform:uppercase;letter-spacing:.01em}
 .drow .t small{display:block;font-family:var(--mono);font-size:11px;color:var(--ink2);text-transform:none;letter-spacing:.04em;margin-top:2px}
 .drow audio{grid-column:2/-1;width:100%;height:34px}
+.dact{display:flex;gap:6px;align-items:center}
+.dx{border:0;background:none;color:var(--ink3);font-size:20px;line-height:1;cursor:pointer;padding:4px 6px;border-radius:4px}
+.dx:hover{color:var(--ink)}.dx.sure{font-size:12px;color:#161617;background:var(--warn)}
+.dna{grid-column:2/-1;color:var(--ink3)}
+.dgone{margin-top:10px}.dgone summary{cursor:pointer}.dgone .drow{opacity:.7}
 .drow .pick{font-size:12px;padding:4px 10px}
 .drow.on .t{color:var(--ink)}
 .drow.on{background:color-mix(in srgb,var(--accent) 14%,transparent)}
@@ -276,8 +281,11 @@ function render(){
   <div><h1><span class="brand">ELEVEN<em>11</em></span><small>status board</small></h1></div>
   <div class="prog"><div class="row"><div class="big">${go}<span style="color:var(--ink3)"> / 6</span></div><div class="meta">Songs with Happee-Go</div></div><div class="bar">${SONGS.map(s=>`<i class="${isGo(s)?"go":st(s)!=="Demo"?"wip":""}"></i>`).join("")}</div><div class="meta">dark = Happee-Go · light = in progress</div></div>
   <section id="songs"><div class="sh"><h2>Songs</h2><span class="meta">Tap a song for details</span></div><div class="tbl">${rows}</div></section>
-  <section id="demos"><div class="sh"><h2>Demos</h2><div style="display:flex;gap:8px;align-items:center"><span class="meta">${DEMOS.length} songs · ${Object.values(demoPicks).filter(x=>x&&x.pick).length} shortlisted</span><button class="pill" id="dtog">${demosOpen?"Hide":"Show"}</button></div></div>
-  ${demosOpen?`<div class="meta" style="margin-top:-6px">Newest version of each song from the Dropbox demo folder, newest first. Shortlist what should move up to the EP.</div><div class="tbl">${DEMOS.map((d,i)=>{const pk=demoPicks[d.id]&&demoPicks[d.id].pick;return `<div class="drow ${pk?"on":""}"><span class="nr">${String(i+1).padStart(2,"0")}</span><div class="t">${esc(d.title)}<small>${esc(d.note)} · ${d.date.split("-").reverse().join(".")} · ${esc(d.file)}</small></div><button class="pill pick ${pk?"on":""}" data-pick="${d.id}">${pk?"Shortlisted":"Shortlist"}</button>${d.src?`<audio controls preload="none" src="${d.src}"></audio>`:""}</div>`}).join("")}</div>`:""}
+  <section id="demos">${(()=>{const dp=id=>demoPicks[id]||{};const vis=DEMOS.filter(d=>!dp(d.id).hidden),gone=DEMOS.filter(d=>dp(d.id).hidden);
+   const row=(d,i)=>{const x=dp(d.id),pk=x.pick,src=x.audio||"";return `<div class="drow ${pk?"on":""}"><span class="nr">${String(i+1).padStart(2,"0")}</span><div class="t">${esc(d.title)}<small>${esc(d.note)} · ${d.date.split("-").reverse().join(".")} · ${esc(d.file)}</small></div><div class="dact"><button class="pill pick ${pk?"on":""}" data-pick="${d.id}">${pk?"Shortlisted":"Shortlist"}</button><button class="dx" data-dx="${d.id}" title="Remove from the list" aria-label="Remove ${esc(d.title)}">×</button></div>${src?`<audio controls preload="none" src="${esc(src)}"></audio>`:`<div class="note dna">No audio link yet</div>`}</div>`};
+   return `<div class="sh"><h2>Demos</h2><div style="display:flex;gap:8px;align-items:center"><span class="meta">${vis.length} songs · ${vis.filter(d=>dp(d.id).pick).length} shortlisted</span><button class="pill" id="dtog">${demosOpen?"Hide":"Show"}</button></div></div>
+  ${demosOpen?`<div class="meta" style="margin-top:-6px">Newest version of each song from the Dropbox demo folder. Shortlist what should move up to the EP, tap × to take a song off the list.</div><div class="tbl">${vis.map(row).join("")}</div>
+  ${gone.length?`<details class="dgone"><summary class="meta">Removed (${gone.length})</summary>${gone.map(d=>`<div class="drow"><span class="nr">–</span><div class="t">${esc(d.title)}<small>removed by ${esc(dp(d.id).hiddenBy||"")}</small></div><button class="pill" data-dr="${d.id}">Put back</button></div>`).join("")}</details>`:""}`:""}`})()}
   </section>
   <section><div class="sh"><h2>To do</h2><span class="meta">${td.filter(t=>!t.done).length} open</span></div>
    <div>${td.length?td.map(t=>`<div class="todo ${t.done?"done":""}"><input type="checkbox" data-td="${t.id}" ${t.done?"checked":""} aria-label="done"><span class="tx">${esc(t.text)}</span><span class="tag soft">${esc(t.who)}</span><button data-tx="${t.id}" aria-label="delete">×</button></div>`).join(""):`<div class="empty" style="padding:8px 0">Nothing open yet. Add the first task below.</div>`}</div>
@@ -315,7 +323,9 @@ function bind(){const $=s=>document.querySelector(s),$$=s=>document.querySelecto
   $$("[data-tx]").forEach(b=>b.onclick=async()=>{try{await db.doc("todos/"+b.dataset.tx).delete()}catch{toast("Could not delete")}});
   $("#tb").onclick=async()=>{if(needName())return;const t=$("#tt").value.trim();if(!t||!db)return;try{await db.collection("todos").add({text:t,who:$("#tw").value,by:me,done:false,ts:Date.now()});$("#tt").value=""}catch{toast("Could not save")}};
   $("#dtog").onclick=()=>{demosOpen=!demosOpen;render()};
-  $$("[data-pick]").forEach(b=>b.onclick=()=>{if(needName())return;const id=b.dataset.pick;const cur=demoPicks[id]&&demoPicks[id].pick;demoPicks[id]={pick:!cur,by:me,ts:Date.now()};save("demopicks/"+id,demoPicks[id]);const row=b.closest(".drow");row.classList.toggle("on",!cur);b.classList.toggle("on",!cur);b.textContent=!cur?"Shortlisted":"Shortlist"});
+  $$("[data-dx]").forEach(b=>b.onclick=()=>{if(needName())return;if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Remove?";b.classList.add("sure");setTimeout(()=>{if(b.isConnected){b.dataset.sure="";b.textContent="×";b.classList.remove("sure")}},3000);return}const id=b.dataset.dx;demoPicks[id]=Object.assign({},demoPicks[id],{hidden:true,hiddenBy:me,ts:Date.now()});save("demopicks/"+id,demoPicks[id]);render();toast("Removed. Find it under Removed to put it back")});
+  $$("[data-dr]").forEach(b=>b.onclick=()=>{if(needName())return;const id=b.dataset.dr;demoPicks[id]=Object.assign({},demoPicks[id],{hidden:false,ts:Date.now()});save("demopicks/"+id,demoPicks[id]);render()});
+  $$("[data-pick]").forEach(b=>b.onclick=()=>{if(needName())return;const id=b.dataset.pick;const cur=demoPicks[id]&&demoPicks[id].pick;demoPicks[id]=Object.assign({},demoPicks[id],{pick:!cur,by:me,ts:Date.now()});save("demopicks/"+id,demoPicks[id]);const row=b.closest(".drow");row.classList.toggle("on",!cur);b.classList.toggle("on",!cur);b.textContent=!cur?"Shortlisted":"Shortlist"});
 }
 ["pause","ended"].forEach(ev=>document.addEventListener(ev,()=>setTimeout(()=>{if(pending)render()},50),true));
 document.addEventListener("focusout",()=>{setTimeout(()=>{if(pending)render()},50)});
