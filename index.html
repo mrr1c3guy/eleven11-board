@@ -79,6 +79,7 @@ textarea{min-height:60px;resize:vertical}
 .cm{border-left:2px solid var(--line);padding:2px 0 2px 10px;display:grid;gap:2px;font-size:14px}
 .cm .meta{font-size:10px}
 .cms{display:grid;gap:10px}
+.lfile{font-family:var(--mono);font-size:9px;color:var(--ink3);opacity:.6;letter-spacing:.04em;margin-top:4px;overflow-wrap:anywhere}
 .lwrap{grid-column:1/-1;border-top:1px solid var(--line);padding-top:18px}
 .lwrap h4{margin:0 0 10px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);font-weight:500}
 .lyr{display:grid;gap:14px;margin-top:12px;columns:2 300px;column-gap:28px;display:block}
@@ -269,7 +270,7 @@ function splitsHtml(sp,ed){const blk=(part,label,hint)=>{const rows=sp.map((x,i)
 function detail(s){const d=songs[s.id]||{};const vs=d.versions||[];const pv=vs[playIdx[s.id]??vs.length-1];const sp=d.splits||[];const tot=sp.reduce((a,x)=>a+(+x.pct||0),0);const cm=comments.filter(c=>c.song===s.id).sort((a,b)=>a.ts-b.ts);const A=kc(s.id);
   return `<div class="det">
   <div class="col">
-   <div><h4>Listen</h4>${d.audio?`<audio controls preload="none" src="${esc(d.audio)}"></audio>`:`<div class="empty">Audio coming soon.</div>`}</div>
+   <div><h4>Listen</h4>${d.audio?`<audio controls preload="none" src="${esc(d.audio)}"></audio>`:`<div class="empty">Audio coming soon.</div>`}${(d.file??s.file)?`<div class="lfile">${esc(d.file??s.file)}</div>`:""}</div>
    <div><h4>Status</h4><div class="stat">${STATUS.map(x=>`<button class="pill" data-st="${x}" aria-pressed="${st(s)===x}">${x}</button>`).join("")}</div><div class="note" style="margin-top:6px">Only Happee can set Happee-Go and Done.</div></div>
    <div><h4>Next step</h4><input type="text" id="nx" value="${esc(d.next||"")}" placeholder="What happens next?"></div>
    <div>${splitOpen!==s.id&&splitEdit!==s.id?`<button class="sptog" id="spopen" aria-expanded="false"><h4>Publishing Splits</h4><span class="chev">›</span></button>`:`<div class="sph4"><button class="sptog" id="spclose" aria-expanded="true"><h4>Publishing Splits</h4><span class="chev open">›</span></button>${splitEdit===s.id?`<button class="pill on" id="spdone">Save</button>`:`<button class="pen" id="spedit" aria-label="Edit splits" title="Edit splits"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`}</div>${splitsHtml(sp,splitEdit===s.id)}`}</div>
