@@ -66,6 +66,9 @@ textarea{min-height:60px;resize:vertical}
 .spbh{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .spbh b{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:500}
 .spadd{justify-self:start;font-size:12px;padding:3px 10px}
+.sph4{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px}.sph4 h4{margin:0}
+.pen{border:1px solid var(--line);background:transparent;color:var(--ink2);border-radius:6px;width:30px;height:30px;display:grid;place-items:center;cursor:pointer}.pen:hover{color:var(--ink);border-color:var(--ink)}
+.spv{display:flex;justify-content:space-between;gap:12px;font-size:15px;padding:2px 0;font-variant-numeric:tabular-nums}
 .spsum{display:grid;gap:4px;margin-top:6px;padding-top:10px;border-top:1.5px solid var(--ink)}
 .sps{display:grid;grid-template-columns:minmax(0,1fr) 64px 64px 72px;gap:10px;align-items:baseline;font-variant-numeric:tabular-nums}.sps>:not(:first-child){text-align:right}.sph{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
 .sp button{border:0;background:none;color:var(--ink3);cursor:pointer;font-size:18px}
@@ -189,7 +192,7 @@ const SONGS=[
 // ---------- STATE ----------
 let assets=null,playIdx={},db=null,songs={},comments=[],todos=[],events=[],chat=[];
 let me="";try{me=localStorage.getItem("e11.name")||""}catch{}
-let demosOpen=false,demoPicks={},demoOpenId=null;
+let demosOpen=false,demoPicks={},demoOpenId=null,splitEdit=null;
 let openId=null,calMonth=new Date(),chatOpen=false,bellOpen=false,pending=false;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt=ts=>{try{return new Date(ts).toLocaleDateString("en-GB",{day:"2-digit",month:"2-digit"})}catch{return""}};
@@ -253,10 +256,10 @@ function bindLyr(s){const $=q=>document.querySelector(q),$$=q=>document.querySel
     if(el.classList.contains("lh"))lines[i]=setHead(lines[i],lyrPick);else lines[i]=setLine(lines[i],lyrPick);
     patchSong(s.id,{lyrics:lines.join("\n"),lyricsBy:me,lyricsTs:Date.now()},true);refreshLyr(s)})}
 const partOf=x=>x.part||(/lyric|text/i.test(x.role||"")?"Text":"Musik");
-function splitsHtml(sp){const blk=(part,label,hint)=>{const rows=sp.map((x,i)=>[x,i]).filter(([x])=>partOf(x)===part);const tot=rows.reduce((a,[x])=>a+(+x.pct||0),0);
-   return `<div class="spb"><div class="spbh"><b>${label}</b><span class="note ${rows.length&&tot!==100?"warn":""}">${rows.length?tot+" %"+(tot!==100?" (should be 100)":""):hint}</span></div>
-   ${rows.map(([x,i])=>`<div class="sp"><input type="text" data-sn="${i}" value="${esc(x.name)}" placeholder="Name"><input type="number" data-sp="${i}" value="${x.pct??""}" min="0" max="100" placeholder="%"><button data-sx="${i}" aria-label="remove">×</button></div>`).join("")}
-   <button class="pill spadd" data-addsp="${part}">+ Writer</button></div>`};
+function splitsHtml(sp,ed){const blk=(part,label,hint)=>{const rows=sp.map((x,i)=>[x,i]).filter(([x])=>partOf(x)===part);const tot=rows.reduce((a,[x])=>a+(+x.pct||0),0);
+   return `<div class="spb"><div class="spbh"><b>${label}</b><span class="note ${rows.length&&tot!==100?"warn":""}">${rows.length?tot+" %"+(tot>100?" (over 100, lower someone)":tot!==100?" (should be 100)":""):hint}</span></div>
+   ${ed?rows.map(([x,i])=>`<div class="sp"><input type="text" data-sn="${i}" value="${esc(x.name)}" placeholder="Name"><input type="number" data-sp="${i}" value="${x.pct??""}" min="0" max="100" placeholder="%"><button data-sx="${i}" aria-label="remove">×</button></div>`).join("")+`<button class="pill spadd" data-addsp="${part}">+ Writer</button>`
+     :rows.length?rows.map(([x])=>`<div class="spv"><span>${esc(x.name||"–")}</span><span>${x.pct??0} %</span></div>`).join(""):""}</div>`};
   const ppl={};sp.forEach(x=>{const n=(x.name||"").trim();if(!n)return;ppl[n]=ppl[n]||{Musik:0,Text:0};ppl[n][partOf(x)]+=(+x.pct||0)});
   const f=v=>(Math.round(v*10)/10)+" %";
   const sum=Object.entries(ppl).map(([n,v])=>`<div class="sps"><span>${esc(n)}</span><span>${f(v.Musik)}</span><span>${f(v.Text)}</span><b>${f(v.Musik*.5+v.Text*.5)}</b></div>`).join("");
@@ -267,7 +270,7 @@ function detail(s){const d=songs[s.id]||{};const vs=d.versions||[];const pv=vs[p
    <div><h4>Listen</h4>${d.audio?`<audio controls preload="none" src="${esc(d.audio)}"></audio>`:`<div class="empty">Audio coming soon.</div>`}</div>
    <div><h4>Status</h4><div class="stat">${STATUS.map(x=>`<button class="pill" data-st="${x}" aria-pressed="${st(s)===x}">${x}</button>`).join("")}</div><div class="note" style="margin-top:6px">Only Happee can set Happee-Go and Done.</div></div>
    <div><h4>Next step</h4><input type="text" id="nx" value="${esc(d.next||"")}" placeholder="What happens next?"></div>
-   <div><h4>Publishing Splits</h4>${splitsHtml(sp)}</div>
+   <div><div class="sph4"><h4>Publishing Splits</h4>${splitEdit===s.id?`<button class="pill on" id="spdone">Save</button>`:`<button class="pen" id="spedit" aria-label="Edit splits" title="Edit splits"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`}</div>${splitsHtml(sp,splitEdit===s.id)}</div>
   </div>
   <div class="col">
    <div><h4>Rating ${A&&A.score!=null?"· "+A.score.toFixed(1)+" / 11":""}</h4><div class="radar">${radarSvg(s)}<div class="note">Tap each axis: inner = not there yet, outer = nailed it. Average of everyone, scored out of 11.</div></div></div>
@@ -323,9 +326,11 @@ function bind(){const $=s=>document.querySelector(s),$$=s=>document.querySelecto
    $$("[data-st]").forEach(b=>b.onclick=()=>{if(needName())return;const v=b.dataset.st;if(["Happee-Go","Done"].includes(v)&&me!=="Happee"){toast("Only Happee can set Happee-Go");return}patchSong(s.id,{status:v},true);$$("[data-st]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.st===v));const row=document.querySelector(`[data-open="${s.id}"] .tag`);if(row){row.textContent=v;row.className="tag "+(["Happee-Go","Done"].includes(v)?"go":v==="Demo"?"soft":"")}});
    $("#nx").onchange=e=>patchSong(s.id,{next:e.target.value.trim()});
    const sp=()=>((songs[s.id]||{}).splits||[]).map(x=>Object.assign({},x));
+   if($("#spedit"))$("#spedit").onclick=()=>{if(needName())return;splitEdit=s.id;render()};
+   if($("#spdone"))$("#spdone").onclick=()=>{document.activeElement&&document.activeElement.blur();setTimeout(()=>{const a=sp().filter(x=>(x.name||"").trim()||x.pct);const over=["Musik","Text"].find(pt=>a.filter(x=>partOf(x)===pt).reduce((t,x)=>t+(+x.pct||0),0)>100);if(over){toast(`${over==="Musik"?"Composition":"Lyrics"} is over 100 %. Lower someone first.`);render();return}splitEdit=null;patchSong(s.id,{splits:a},true);render();toast("Splits saved")},300)};
    $$("[data-addsp]").forEach(b=>b.onclick=()=>{if(needName())return;document.activeElement&&document.activeElement.blur();const a=sp();a.push({name:"",part:b.dataset.addsp,pct:null});patchSong(s.id,{splits:a})});
    $$("[data-sn]").forEach(i=>i.onchange=()=>{const a=sp();a[+i.dataset.sn].name=i.value.trim();patchSong(s.id,{splits:a},true);setTimeout(render,250)});
-   $$("[data-sp]").forEach(i=>i.onchange=()=>{const a=sp();const k=+i.dataset.sp;const part=partOf(a[k]);const others=a.reduce((t,x,j)=>j!==k&&partOf(x)===part?t+(+x.pct||0):t,0);const left=Math.max(0,100-others);let v=i.value===""?null:Math.max(0,+i.value);if(v!=null&&v>left){v=left;toast(`Only ${left} % left in ${part==="Musik"?"Composition":"Lyrics"}`)}a[k].pct=v;patchSong(s.id,{splits:a},true);setTimeout(render,250)});
+   $$("[data-sp]").forEach(i=>i.onchange=()=>{const a=sp();const k=+i.dataset.sp;const part=partOf(a[k]);let v=i.value===""?null:Math.min(100,Math.max(0,+i.value));a[k].pct=v;patchSong(s.id,{splits:a},true);setTimeout(render,250)});
    $$("[data-sx]").forEach(i=>i.onclick=()=>{const a=sp();a.splice(+i.dataset.sx,1);patchSong(s.id,{splits:a})});
    bindRadar(s);
    bindLyr(s);
