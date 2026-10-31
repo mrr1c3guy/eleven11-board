@@ -201,7 +201,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border
 <script>
 // ---------- STATIC DATA ----------
 const PEOPLE=["Tino","BJ","Phoi","Happee"];
-const STATUS=["Demo","Writing","Production","Vocals","Mix & Master","Happee-Go","Done"];
+const STATUS=["Demo","Writing","Production","Recording","Mix & Master","Happee-Go","Done"];
 const AXES=["Catchy","Lyrics","Vocals","Groove","Vibe"];
 const ROLES=["Lyrics","Melody","Topline","Production","Other"];
 const MEMBERS=[{k:"CJ",c:"#a8c6d2"},{k:"SWAGGY",n:"Swaggy",c:"#e0b267"},{k:"AUDREY",n:"Audrey",c:"#86c2a6"},{k:"JADE",n:"Jade",c:"#d39cc4"}];
@@ -221,7 +221,7 @@ let demosOpen=false,demoPicks={},demoOpenId=null,splitEdit=null,splitOpen=null;
 let openId=null,calMonth=new Date(),chatOpen=false,bellOpen=false,pending=false;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt=ts=>{try{return new Date(ts).toLocaleDateString("en-GB",{day:"2-digit",month:"2-digit"})}catch{return""}};
-const st=s=>(songs[s.id]&&songs[s.id].status)||"Demo";
+const st=s=>{const v=(songs[s.id]&&songs[s.id].status)||"Demo";return v==="Vocals"?"Recording":v};
 const isGo=s=>["Happee-Go","Done"].includes(st(s));
 const lastSeenKey=()=>"e11.seen."+me;
 const getSeen=()=>{try{return +localStorage.getItem(lastSeenKey())||Date.now()-7*864e5}catch{return 0}};
