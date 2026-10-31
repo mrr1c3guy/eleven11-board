@@ -260,7 +260,7 @@ function splitsHtml(sp){const blk=(part,label,hint)=>{const rows=sp.map((x,i)=>[
   const ppl={};sp.forEach(x=>{const n=(x.name||"").trim();if(!n)return;ppl[n]=ppl[n]||{Musik:0,Text:0};ppl[n][partOf(x)]+=(+x.pct||0)});
   const f=v=>(Math.round(v*10)/10)+" %";
   const sum=Object.entries(ppl).map(([n,v])=>`<div class="sps"><span>${esc(n)}</span><span>${f(v.Musik)}</span><span>${f(v.Text)}</span><b>${f(v.Musik*.5+v.Text*.5)}</b></div>`).join("");
-  return `<div class="splits">${blk("Musik","Composition","Melody, topline, beat, played parts")}${blk("Text","Lyrics","Who wrote the words?")}</div>${sum?`<div class="spsum"><div class="sps sph"><span>Writer</span><span>Comp.</span><span>Lyrics</span><span>Overall</span></div>${sum}<div class="note">Overall = composition and lyrics 50/50. Hand composition and lyrics shares to the publisher.</div></div>`:""}`}
+  return `<div class="splits">${blk("Musik","Composition","Melody, topline, beat, instrument parts")}${blk("Text","Lyrics","Who wrote the words?")}</div>${sum?`<div class="spsum"><div class="sps sph"><span>Writer</span><span>Comp.</span><span>Lyrics</span><span>Overall</span></div>${sum}<div class="note">Overall = composition and lyrics 50/50. Hand composition and lyrics shares to the publisher.</div></div>`:""}`}
 function detail(s){const d=songs[s.id]||{};const vs=d.versions||[];const pv=vs[playIdx[s.id]??vs.length-1];const sp=d.splits||[];const tot=sp.reduce((a,x)=>a+(+x.pct||0),0);const cm=comments.filter(c=>c.song===s.id).sort((a,b)=>a.ts-b.ts);const A=kc(s.id);
   return `<div class="det">
   <div class="col">
