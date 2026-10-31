@@ -61,7 +61,13 @@ input[type=text],input[type=date],input[type=number],select,textarea{background:
 textarea{min-height:60px;resize:vertical}
 .stat{display:flex;gap:6px;flex-wrap:wrap}
 .splits{display:grid;gap:6px}
-.sp{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 64px 24px;gap:6px;align-items:center}
+.sp{display:grid;grid-template-columns:minmax(0,1fr) 72px 24px;gap:6px;align-items:center}
+.spb{display:grid;gap:6px;padding:10px 0;border-top:1px solid var(--line)}
+.spbh{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.spbh b{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:500}
+.spadd{justify-self:start;font-size:12px;padding:3px 10px}
+.spsum{display:grid;gap:4px;margin-top:6px;padding-top:10px;border-top:1.5px solid var(--ink)}
+.sps{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:baseline}
 .sp button{border:0;background:none;color:var(--ink3);cursor:pointer;font-size:18px}
 .note{font-size:12px;color:var(--ink2)}
 .warn{color:var(--warn)}
@@ -246,14 +252,21 @@ function bindLyr(s){const $=q=>document.querySelector(q),$$=q=>document.querySel
   if(lyrAssign===s.id)$$(".lwrap [data-li]").forEach(el=>el.onclick=()=>{const d=songs[s.id]||{};const lines=String(d.lyrics||"").replace(/\r/g,"").split("\n");const i=+el.dataset.li;
     if(el.classList.contains("lh"))lines[i]=setHead(lines[i],lyrPick);else lines[i]=setLine(lines[i],lyrPick);
     patchSong(s.id,{lyrics:lines.join("\n"),lyricsBy:me,lyricsTs:Date.now()},true);refreshLyr(s)})}
+const partOf=x=>x.part||(/lyric|text/i.test(x.role||"")?"Text":"Musik");
+function splitsHtml(sp){const blk=(part,label,hint)=>{const rows=sp.map((x,i)=>[x,i]).filter(([x])=>partOf(x)===part);const tot=rows.reduce((a,[x])=>a+(+x.pct||0),0);
+   return `<div class="spb"><div class="spbh"><b>${label}</b><span class="note ${rows.length&&tot!==100?"warn":""}">${rows.length?tot+" %"+(tot!==100?" (should be 100)":""):hint}</span></div>
+   ${rows.map(([x,i])=>`<div class="sp"><input type="text" data-sn="${i}" value="${esc(x.name)}" placeholder="Name"><input type="number" data-sp="${i}" value="${x.pct??""}" min="0" max="100" placeholder="%"><button data-sx="${i}" aria-label="remove">×</button></div>`).join("")}
+   <button class="pill spadd" data-addsp="${part}">+ Writer</button></div>`};
+  const ppl={};sp.forEach(x=>{const n=(x.name||"").trim();if(!n)return;ppl[n]=ppl[n]||{Musik:0,Text:0};ppl[n][partOf(x)]+=(+x.pct||0)});
+  const sum=Object.entries(ppl).map(([n,v])=>`<div class="sps"><span>${esc(n)}</span><b>${(v.Musik*.5+v.Text*.5).toFixed(1).replace(/\.0$/,"")} %</b><span class="note">GEMA perf. ${(v.Musik*.64+v.Text*.36).toFixed(1).replace(/\.0$/,"")} %</span></div>`).join("");
+  return `<div class="splits">${blk("Musik","Music","Melody, topline, beat")}${blk("Text","Lyrics","Who wrote the words?")}</div>${sum?`<div class="spsum"><div class="meta">Overall share (music and lyrics 50/50)</div>${sum}</div>`:""}`}
 function detail(s){const d=songs[s.id]||{};const vs=d.versions||[];const pv=vs[playIdx[s.id]??vs.length-1];const sp=d.splits||[];const tot=sp.reduce((a,x)=>a+(+x.pct||0),0);const cm=comments.filter(c=>c.song===s.id).sort((a,b)=>a.ts-b.ts);const A=kc(s.id);
   return `<div class="det">
   <div class="col">
    <div><h4>Listen</h4>${d.audio?`<audio controls preload="none" src="${esc(d.audio)}"></audio>`:`<div class="empty">Audio coming soon.</div>`}</div>
    <div><h4>Status</h4><div class="stat">${STATUS.map(x=>`<button class="pill" data-st="${x}" aria-pressed="${st(s)===x}">${x}</button>`).join("")}</div><div class="note" style="margin-top:6px">Only Happee can set Happee-Go and Done.</div></div>
    <div><h4>Next step</h4><input type="text" id="nx" value="${esc(d.next||"")}" placeholder="What happens next?"></div>
-   <div><h4>Publishing Splits</h4><div class="splits">${sp.map((x,i)=>`<div class="sp"><input type="text" data-sn="${i}" value="${esc(x.name)}" placeholder="Name"><select data-sr="${i}">${ROLES.map(r=>`<option ${x.role===r?"selected":""}>${r}</option>`).join("")}</select><input type="number" data-sp="${i}" value="${x.pct??""}" min="0" max="100" placeholder="%"><button data-sx="${i}" aria-label="remove">×</button></div>`).join("")}</div>
-    <div style="display:flex;gap:10px;align-items:center;margin-top:8px"><button class="pill" id="addsp">+ Writer</button><span class="note ${sp.length&&tot!==100?"warn":""}">${sp.length?"Total "+tot+" %"+(tot!==100?" (should be 100)":""):"Who co-wrote lyrics or melody?"}</span></div></div>
+   <div><h4>Publishing Splits</h4>${splitsHtml(sp)}</div>
   </div>
   <div class="col">
    <div><h4>Rating ${A&&A.score!=null?"· "+A.score.toFixed(1)+" / 11":""}</h4><div class="radar">${radarSvg(s)}<div class="note">Tap each axis: inner = not there yet, outer = nailed it. Average of everyone, scored out of 11.</div></div></div>
@@ -309,9 +322,8 @@ function bind(){const $=s=>document.querySelector(s),$$=s=>document.querySelecto
    $$("[data-st]").forEach(b=>b.onclick=()=>{if(needName())return;const v=b.dataset.st;if(["Happee-Go","Done"].includes(v)&&me!=="Happee"){toast("Only Happee can set Happee-Go");return}patchSong(s.id,{status:v},true);$$("[data-st]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.st===v));const row=document.querySelector(`[data-open="${s.id}"] .tag`);if(row){row.textContent=v;row.className="tag "+(["Happee-Go","Done"].includes(v)?"go":v==="Demo"?"soft":"")}});
    $("#nx").onchange=e=>patchSong(s.id,{next:e.target.value.trim()});
    const sp=()=>((songs[s.id]||{}).splits||[]).map(x=>Object.assign({},x));
-   $("#addsp").onclick=()=>{if(needName())return;const a=sp();a.push({name:"",role:"Lyrics",pct:null});patchSong(s.id,{splits:a})};
+   $$("[data-addsp]").forEach(b=>b.onclick=()=>{if(needName())return;const a=sp();a.push({name:"",part:b.dataset.addsp,pct:null});patchSong(s.id,{splits:a})});
    $$("[data-sn]").forEach(i=>i.onchange=()=>{const a=sp();a[+i.dataset.sn].name=i.value.trim();patchSong(s.id,{splits:a})});
-   $$("[data-sr]").forEach(i=>i.onchange=()=>{const a=sp();a[+i.dataset.sr].role=i.value;patchSong(s.id,{splits:a})});
    $$("[data-sp]").forEach(i=>i.onchange=()=>{const a=sp();a[+i.dataset.sp].pct=i.value===""?null:+i.value;patchSong(s.id,{splits:a})});
    $$("[data-sx]").forEach(i=>i.onclick=()=>{const a=sp();a.splice(+i.dataset.sx,1);patchSong(s.id,{splits:a})});
    bindRadar(s);
