@@ -381,8 +381,8 @@ const audioCache={},audioLoading={};
 async function loadStored(id){if(audioCache[id])return audioCache[id];if(audioLoading[id])return audioLoading[id];
   audioLoading[id]=(async()=>{const m=(await db.doc("audio/"+id).get()).data();if(!m)throw new Error("missing");
     const parts=await Promise.all([...Array(m.chunks).keys()].map(i=>db.doc("audio/"+id+"_"+i).get().then(s=>s.data().b)));
-    const bin=atob(parts.join(""));const u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);
-    return audioCache[id]=URL.createObjectURL(new Blob([u8],{type:m.type||"audio/mpeg"}))})();
+    const bufs=parts.map(b64=>{const bin=atob(b64);const u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);return u8});
+    return audioCache[id]=URL.createObjectURL(new Blob(bufs,{type:m.type||"audio/mpeg"}))})();
   try{return await audioLoading[id]}finally{delete audioLoading[id]}}
 function bindStored(){document.querySelectorAll("audio[data-stored]:not([src])").forEach(a=>{const n=document.createElement("div");n.className="note dna";n.textContent="Loading…";a.after(n);
   loadStored(a.dataset.stored).then(u=>{a.src=u;n.remove()}).catch(()=>{n.textContent="Could not load this demo."})})}
