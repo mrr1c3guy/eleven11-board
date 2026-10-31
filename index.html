@@ -324,8 +324,8 @@ function bind(){const $=s=>document.querySelector(s),$$=s=>document.querySelecto
    $("#nx").onchange=e=>patchSong(s.id,{next:e.target.value.trim()});
    const sp=()=>((songs[s.id]||{}).splits||[]).map(x=>Object.assign({},x));
    $$("[data-addsp]").forEach(b=>b.onclick=()=>{if(needName())return;document.activeElement&&document.activeElement.blur();const a=sp();a.push({name:"",part:b.dataset.addsp,pct:null});patchSong(s.id,{splits:a})});
-   $$("[data-sn]").forEach(i=>i.onchange=()=>{const a=sp();a[+i.dataset.sn].name=i.value.trim();patchSong(s.id,{splits:a})});
-   $$("[data-sp]").forEach(i=>i.onchange=()=>{const a=sp();const k=+i.dataset.sp;const part=partOf(a[k]);const others=a.reduce((t,x,j)=>j!==k&&partOf(x)===part?t+(+x.pct||0):t,0);const left=Math.max(0,100-others);let v=i.value===""?null:Math.max(0,+i.value);if(v!=null&&v>left){v=left;toast(`Only ${left} % left in ${part==="Musik"?"Komposition":"Text"}`)}a[k].pct=v;patchSong(s.id,{splits:a})});
+   $$("[data-sn]").forEach(i=>i.onchange=()=>{const a=sp();a[+i.dataset.sn].name=i.value.trim();patchSong(s.id,{splits:a},true);setTimeout(render,250)});
+   $$("[data-sp]").forEach(i=>i.onchange=()=>{const a=sp();const k=+i.dataset.sp;const part=partOf(a[k]);const others=a.reduce((t,x,j)=>j!==k&&partOf(x)===part?t+(+x.pct||0):t,0);const left=Math.max(0,100-others);let v=i.value===""?null:Math.max(0,+i.value);if(v!=null&&v>left){v=left;toast(`Only ${left} % left in ${part==="Musik"?"Komposition":"Text"}`)}a[k].pct=v;patchSong(s.id,{splits:a},true);setTimeout(render,250)});
    $$("[data-sx]").forEach(i=>i.onclick=()=>{const a=sp();a.splice(+i.dataset.sx,1);patchSong(s.id,{splits:a})});
    bindRadar(s);
    bindLyr(s);
