@@ -39,6 +39,8 @@ h2{margin:0;font-family:var(--box);font-size:16px;font-weight:400;letter-spacing
 .bar i{flex:1;background:var(--line)}
 .bar i.go{background:var(--accent)}
 .bar i.wip{background:var(--accent-soft)}
+.leg{display:flex;flex-wrap:wrap;gap:6px 16px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.leg i{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--line);margin-right:6px;vertical-align:-1px}.leg i.go{background:var(--accent)}.leg i.wip{background:var(--accent-soft)}
 section{display:grid;gap:14px;scroll-margin-top:16px}
 .sh{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;border-top:1.5px solid var(--ink);padding-top:10px}
 .tbl{display:grid;gap:0;border-top:1px solid var(--line)}
@@ -308,10 +310,10 @@ function render(){
   <div class="top"><div class="brand"><div class="meta"><span class="plus">+</span>debut EP · 6 songs · Tracksetters</div></div>
    <div class="who">${PEOPLE.map(p=>`<button class="pill" data-me="${p}" aria-pressed="${me===p}">${p}</button>`).join("")}<span class="rel"><button class="pill" id="bell" aria-label="Notifications">Alerts${nNew?` <b>${nNew}</b>`:""}</button>${bellOpen?`<div class="bellpop">${items.length?items.map(x=>`<div class="it ${x.ts>seen?"new":""}"><span class="meta">${fmt(x.ts)}</span>${esc(x.text)}</div>`).join(""):`<div class="it empty">Nothing new.</div>`}</div>`:""}</span><button class="pill" id="theme" aria-label="Light or dark">◐</button></div></div>
   <div><h1><span class="brand">ELEVEN<em>11</em></span><small>status board</small></h1></div>
-  <div class="prog"><div class="row"><div class="big">${go}<span style="color:var(--ink3)"> / 6</span></div><div class="meta">Songs with Happee-Go</div></div><div class="bar">${SONGS.map(s=>`<i class="${isGo(s)?"go":st(s)!=="Demo"?"wip":""}"></i>`).join("")}</div><div class="meta">dark = Happee-Go · light = in progress</div></div>
+  <div class="prog"><div class="row"><div class="big">${go}<span style="color:var(--ink3)"> / 6</span></div><div class="meta">Songs with Happee-Go</div></div><div class="bar">${SONGS.map(s=>`<i class="${isGo(s)?"go":st(s)!=="Demo"?"wip":""}"></i>`).join("")}</div><div class="leg"><span><i class="go"></i>Approved by Happee</span><span><i class="wip"></i>In progress</span><span><i></i>Not started</span></div></div>
   <section id="songs"><div class="sh"><h2>Songs</h2><span class="meta">Tap a song for details</span></div><div class="tbl">${rows}</div></section>
   <section id="demos">${(()=>{const dp=id=>demoPicks[id]||{};const vis=DEMOS.filter(d=>!dp(d.id).hidden),gone=DEMOS.filter(d=>dp(d.id).hidden);
-   const row=(d,i)=>{const x=dp(d.id),pk=x.pick,src=x.audio||"";const op=demoOpenId===d.id;return `<div class="drow ${pk?"on":""} ${op?"open":""}" data-dopen="${d.id}"><span class="nr">${String(i+1).padStart(2,"0")}</span><div class="t">${esc(d.title)}<small>${esc(d.note)} · ${d.date.split("-").reverse().join(".")} · ${esc(d.file)}</small></div><div class="dact"><button class="pill pick ${pk?"on":""}" data-pick="${d.id}">${pk?"Shortlisted":"Shortlist"}</button><button class="dx" data-dx="${d.id}" title="Remove from the list" aria-label="Remove ${esc(d.title)}">×</button></div>${op?(src?`<audio controls preload="none" src="${esc(src)}"></audio>`:`<div class="note dna">No audio yet. Needs a Dropbox link for this file.</div>`):""}</div>`};
+   const row=(d,i)=>{const x=dp(d.id),pk=x.pick,src=x.audio||"";const op=demoOpenId===d.id;return `<div class="drow ${pk?"on":""} ${op?"open":""}" data-dopen="${d.id}"><span class="nr">${String(i+1).padStart(2,"0")}</span><div class="t">${esc(d.title)}<small>${esc(d.note)} · ${d.date.split("-").reverse().join(".")} · ${esc(d.file)}</small></div><div class="dact"><button class="pill pick ${pk?"on":""}" data-pick="${d.id}">${pk?"Shortlisted":"Shortlist"}</button><button class="dx" data-dx="${d.id}" title="Remove from the list" aria-label="Remove ${esc(d.title)}">×</button></div>${op?(src?`<audio controls preload="none" src="${esc(src)}"></audio>`:x.stored?`<audio controls preload="none" data-stored="${d.id}"${audioCache[d.id]?` src="${audioCache[d.id]}"`:""}></audio>`:`<div class="note dna">No audio yet.</div>`):""}</div>`};
    return `<div class="sh"><h2>Demos</h2><div style="display:flex;gap:8px;align-items:center"><span class="meta">${vis.length} songs · ${vis.filter(d=>dp(d.id).pick).length} shortlisted</span><button class="pill" id="dtog">${demosOpen?"Hide":"Show"}</button></div></div>
   ${demosOpen?`<div class="meta" style="margin-top:-6px">Newest version of each song from the Dropbox demo folder. Shortlist what should move up to the EP, tap × to take a song off the list.</div><div class="tbl">${vis.map(row).join("")}</div>
   ${gone.length?`<details class="dgone"><summary class="meta">Removed (${gone.length})</summary>${gone.map(d=>`<div class="drow"><span class="nr">–</span><div class="t">${esc(d.title)}<small>removed by ${esc(dp(d.id).hiddenBy||"")}</small></div><button class="pill" data-dr="${d.id}">Put back</button></div>`).join("")}</details>`:""}`:""}`})()}
@@ -320,7 +322,7 @@ function render(){
    <div>${td.length?td.map(t=>`<div class="todo ${t.done?"done":""}"><input type="checkbox" data-td="${t.id}" ${t.done?"checked":""} aria-label="done"><span class="tx">${esc(t.text)}</span><span class="tag soft">${esc(t.who)}</span><button data-tx="${t.id}" aria-label="delete">×</button></div>`).join(""):`<div class="empty" style="padding:8px 0">Nothing open yet. Add the first task below.</div>`}</div>
    <div class="add"><select id="tw">${[...PEOPLE,"All"].map(p=>`<option ${p===me?"selected":""}>${p}</option>`).join("")}</select><input type="text" id="tt" placeholder="What needs to happen?"><button class="pill on" id="tb">+</button></div></section>
   <footer><span class="meta">ELEVEN11 · Tracksetters</span><button class="pill" id="logout">Log out</button></footer>`;
-  bind();document.getElementById("fab").hidden=!db;
+  bind();bindStored();document.getElementById("fab").hidden=!db;
 }
 function notifs(){const meL=me.toLowerCase();const o=[];
   comments.forEach(c=>{if((c.name||"").toLowerCase()!==meL)o.push({ts:c.ts,text:`${c.name} on ${(SONGS.find(s=>s.id===c.song)||{}).title}: ${c.text}`.slice(0,120)})});
@@ -362,6 +364,16 @@ function bind(){const $=s=>document.querySelector(s),$$=s=>document.querySelecto
 ["pause","ended"].forEach(ev=>document.addEventListener(ev,()=>setTimeout(()=>{if(pending)render()},50),true));
 document.addEventListener("focusout",()=>{setTimeout(()=>{if(pending)render()},50)});
 document.addEventListener("click",e=>{if(bellOpen&&!e.target.closest(".rel")){bellOpen=false;if(me){try{localStorage.setItem(lastSeenKey(),String(Date.now()))}catch{}}render()}});
+// ---------- STORED AUDIO (chunks in the protected database) ----------
+const audioCache={},audioLoading={};
+async function loadStored(id){if(audioCache[id])return audioCache[id];if(audioLoading[id])return audioLoading[id];
+  audioLoading[id]=(async()=>{const m=(await db.doc("audio/"+id).get()).data();if(!m)throw new Error("missing");
+    const parts=await Promise.all([...Array(m.chunks).keys()].map(i=>db.doc("audio/"+id+"_"+i).get().then(s=>s.data().b)));
+    const bin=atob(parts.join(""));const u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);
+    return audioCache[id]=URL.createObjectURL(new Blob([u8],{type:m.type||"audio/mpeg"}))})();
+  try{return await audioLoading[id]}finally{delete audioLoading[id]}}
+function bindStored(){document.querySelectorAll("audio[data-stored]:not([src])").forEach(a=>{const n=document.createElement("div");n.className="note dna";n.textContent="Loading…";a.after(n);
+  loadStored(a.dataset.stored).then(u=>{a.src=u;n.remove()}).catch(()=>{n.textContent="Could not load this demo."})})}
 // ---------- MINI PLAYER ----------
 let lastAudio=null;
 const PLAY='<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>',PAUSE='<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>';
