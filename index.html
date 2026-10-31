@@ -260,7 +260,7 @@ function splitsHtml(sp){const blk=(part,label,hint)=>{const rows=sp.map((x,i)=>[
   const ppl={};sp.forEach(x=>{const n=(x.name||"").trim();if(!n)return;ppl[n]=ppl[n]||{Musik:0,Text:0};ppl[n][partOf(x)]+=(+x.pct||0)});
   const f=v=>(Math.round(v*10)/10).toString().replace(".",",")+" %";
   const sum=Object.entries(ppl).map(([n,v])=>`<div class="sps"><span>${esc(n)}</span><span>${f(v.Musik)}</span><span>${f(v.Text)}</span><b>${f(v.Musik*.5+v.Text*.5)}</b></div>`).join("");
-  return `<div class="splits">${blk("Musik","Composition (Komposition)","Melody, topline, beat, played parts")}${blk("Text","Lyrics (Text)","Who wrote the words?")}</div>${sum?`<div class="spsum"><div class="sps sph"><span>Writer</span><span>Komp.</span><span>Text</span><span>Overall</span></div>${sum}<div class="note">Overall = Komposition and Text 50/50. Hand Komp. and Text to the publisher.</div></div>`:""}`}
+  return `<div class="splits">${blk("Musik","Composition","Melody, topline, beat, played parts")}${blk("Text","Lyrics","Who wrote the words?")}</div>${sum?`<div class="spsum"><div class="sps sph"><span>Writer</span><span>Comp.</span><span>Lyrics</span><span>Overall</span></div>${sum}<div class="note">Overall = composition and lyrics 50/50. Hand composition and lyrics shares to the publisher.</div></div>`:""}`}
 function detail(s){const d=songs[s.id]||{};const vs=d.versions||[];const pv=vs[playIdx[s.id]??vs.length-1];const sp=d.splits||[];const tot=sp.reduce((a,x)=>a+(+x.pct||0),0);const cm=comments.filter(c=>c.song===s.id).sort((a,b)=>a.ts-b.ts);const A=kc(s.id);
   return `<div class="det">
   <div class="col">
@@ -325,7 +325,7 @@ function bind(){const $=s=>document.querySelector(s),$$=s=>document.querySelecto
    const sp=()=>((songs[s.id]||{}).splits||[]).map(x=>Object.assign({},x));
    $$("[data-addsp]").forEach(b=>b.onclick=()=>{if(needName())return;document.activeElement&&document.activeElement.blur();const a=sp();a.push({name:"",part:b.dataset.addsp,pct:null});patchSong(s.id,{splits:a})});
    $$("[data-sn]").forEach(i=>i.onchange=()=>{const a=sp();a[+i.dataset.sn].name=i.value.trim();patchSong(s.id,{splits:a},true);setTimeout(render,250)});
-   $$("[data-sp]").forEach(i=>i.onchange=()=>{const a=sp();const k=+i.dataset.sp;const part=partOf(a[k]);const others=a.reduce((t,x,j)=>j!==k&&partOf(x)===part?t+(+x.pct||0):t,0);const left=Math.max(0,100-others);let v=i.value===""?null:Math.max(0,+i.value);if(v!=null&&v>left){v=left;toast(`Only ${left} % left in ${part==="Musik"?"Komposition":"Text"}`)}a[k].pct=v;patchSong(s.id,{splits:a},true);setTimeout(render,250)});
+   $$("[data-sp]").forEach(i=>i.onchange=()=>{const a=sp();const k=+i.dataset.sp;const part=partOf(a[k]);const others=a.reduce((t,x,j)=>j!==k&&partOf(x)===part?t+(+x.pct||0):t,0);const left=Math.max(0,100-others);let v=i.value===""?null:Math.max(0,+i.value);if(v!=null&&v>left){v=left;toast(`Only ${left} % left in ${part==="Musik"?"Composition":"Lyrics"}`)}a[k].pct=v;patchSong(s.id,{splits:a},true);setTimeout(render,250)});
    $$("[data-sx]").forEach(i=>i.onclick=()=>{const a=sp();a.splice(+i.dataset.sx,1);patchSong(s.id,{splits:a})});
    bindRadar(s);
    bindLyr(s);
