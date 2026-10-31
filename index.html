@@ -66,6 +66,8 @@ textarea{min-height:60px;resize:vertical}
 .spbh{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .spbh b{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:500}
 .spadd{justify-self:start;font-size:12px;padding:3px 10px}
+.sptog{display:flex;align-items:center;gap:8px;border:0;background:none;padding:0;cursor:pointer;color:inherit}.sptog h4{margin:0}
+.chev{color:var(--ink3);font-size:18px;line-height:1;transition:transform .15s}.chev.open{transform:rotate(90deg)}
 .sph4{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px}.sph4 h4{margin:0}
 .pen{border:1px solid var(--line);background:transparent;color:var(--ink2);border-radius:6px;width:30px;height:30px;display:grid;place-items:center;cursor:pointer}.pen:hover{color:var(--ink);border-color:var(--ink)}
 .spv{display:flex;justify-content:space-between;gap:12px;font-size:15px;padding:2px 0;font-variant-numeric:tabular-nums}
@@ -192,7 +194,7 @@ const SONGS=[
 // ---------- STATE ----------
 let assets=null,playIdx={},db=null,songs={},comments=[],todos=[],events=[],chat=[];
 let me="";try{me=localStorage.getItem("e11.name")||""}catch{}
-let demosOpen=false,demoPicks={},demoOpenId=null,splitEdit=null;
+let demosOpen=false,demoPicks={},demoOpenId=null,splitEdit=null,splitOpen=null;
 let openId=null,calMonth=new Date(),chatOpen=false,bellOpen=false,pending=false;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt=ts=>{try{return new Date(ts).toLocaleDateString("en-GB",{day:"2-digit",month:"2-digit"})}catch{return""}};
@@ -270,7 +272,7 @@ function detail(s){const d=songs[s.id]||{};const vs=d.versions||[];const pv=vs[p
    <div><h4>Listen</h4>${d.audio?`<audio controls preload="none" src="${esc(d.audio)}"></audio>`:`<div class="empty">Audio coming soon.</div>`}</div>
    <div><h4>Status</h4><div class="stat">${STATUS.map(x=>`<button class="pill" data-st="${x}" aria-pressed="${st(s)===x}">${x}</button>`).join("")}</div><div class="note" style="margin-top:6px">Only Happee can set Happee-Go and Done.</div></div>
    <div><h4>Next step</h4><input type="text" id="nx" value="${esc(d.next||"")}" placeholder="What happens next?"></div>
-   <div><div class="sph4"><h4>Publishing Splits</h4>${splitEdit===s.id?`<button class="pill on" id="spdone">Save</button>`:`<button class="pen" id="spedit" aria-label="Edit splits" title="Edit splits"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`}</div>${splitsHtml(sp,splitEdit===s.id)}</div>
+   <div>${splitOpen!==s.id&&splitEdit!==s.id?`<button class="sptog" id="spopen" aria-expanded="false"><h4>Publishing Splits</h4><span class="chev">›</span></button>`:`<div class="sph4"><button class="sptog" id="spclose" aria-expanded="true"><h4>Publishing Splits</h4><span class="chev open">›</span></button>${splitEdit===s.id?`<button class="pill on" id="spdone">Save</button>`:`<button class="pen" id="spedit" aria-label="Edit splits" title="Edit splits"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`}</div>${splitsHtml(sp,splitEdit===s.id)}`}</div>
   </div>
   <div class="col">
    <div><h4>Rating ${A&&A.score!=null?"· "+A.score.toFixed(1)+" / 11":""}</h4><div class="radar">${radarSvg(s)}<div class="note">Tap each axis: inner = not there yet, outer = nailed it. Average of everyone, scored out of 11.</div></div></div>
@@ -326,8 +328,10 @@ function bind(){const $=s=>document.querySelector(s),$$=s=>document.querySelecto
    $$("[data-st]").forEach(b=>b.onclick=()=>{if(needName())return;const v=b.dataset.st;if(["Happee-Go","Done"].includes(v)&&me!=="Happee"){toast("Only Happee can set Happee-Go");return}patchSong(s.id,{status:v},true);$$("[data-st]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.st===v));const row=document.querySelector(`[data-open="${s.id}"] .tag`);if(row){row.textContent=v;row.className="tag "+(["Happee-Go","Done"].includes(v)?"go":v==="Demo"?"soft":"")}});
    $("#nx").onchange=e=>patchSong(s.id,{next:e.target.value.trim()});
    const sp=()=>((songs[s.id]||{}).splits||[]).map(x=>Object.assign({},x));
+   if($("#spopen"))$("#spopen").onclick=()=>{splitOpen=s.id;render()};
+   if($("#spclose"))$("#spclose").onclick=()=>{if(splitEdit===s.id)return;splitOpen=null;render()};
    if($("#spedit"))$("#spedit").onclick=()=>{if(needName())return;splitEdit=s.id;render()};
-   if($("#spdone"))$("#spdone").onclick=()=>{document.activeElement&&document.activeElement.blur();setTimeout(()=>{const a=sp().filter(x=>(x.name||"").trim()||x.pct);const over=["Musik","Text"].find(pt=>a.filter(x=>partOf(x)===pt).reduce((t,x)=>t+(+x.pct||0),0)>100);if(over){toast(`${over==="Musik"?"Composition":"Lyrics"} is over 100 %. Lower someone first.`);render();return}splitEdit=null;patchSong(s.id,{splits:a},true);render();toast("Splits saved")},300)};
+   if($("#spdone"))$("#spdone").onclick=()=>{document.activeElement&&document.activeElement.blur();setTimeout(()=>{const a=sp().filter(x=>(x.name||"").trim()||x.pct);const over=["Musik","Text"].find(pt=>a.filter(x=>partOf(x)===pt).reduce((t,x)=>t+(+x.pct||0),0)>100);if(over){toast(`${over==="Musik"?"Composition":"Lyrics"} is over 100 %. Lower someone first.`);render();return}splitEdit=null;splitOpen=s.id;patchSong(s.id,{splits:a},true);render();toast("Splits saved")},300)};
    $$("[data-addsp]").forEach(b=>b.onclick=()=>{if(needName())return;document.activeElement&&document.activeElement.blur();const a=sp();a.push({name:"",part:b.dataset.addsp,pct:null});patchSong(s.id,{splits:a})});
    $$("[data-sn]").forEach(i=>i.onchange=()=>{const a=sp();a[+i.dataset.sn].name=i.value.trim();patchSong(s.id,{splits:a},true);setTimeout(render,250)});
    $$("[data-sp]").forEach(i=>i.onchange=()=>{const a=sp();const k=+i.dataset.sp;const part=partOf(a[k]);let v=i.value===""?null:Math.min(100,Math.max(0,+i.value));a[k].pct=v;patchSong(s.id,{splits:a},true);setTimeout(render,250)});
