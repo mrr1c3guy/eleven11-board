@@ -6,15 +6,16 @@
 :root{
   --bg:#ebebe8; --panel:#f4f4f1; --ink:#161617; --ink2:#5b5b57; --ink3:#9a9a94; --line:#d6d6d0;
   --accent:#a8c6d2; --accent-soft:#d9e6ec; --pill:#161617; --pill-ink:#f4f4f1; --ok:#6fae93; --warn:#d9a24f;
+  --m-cj:#a8c6d2; --m-swaggy:#e0b267; --m-audrey:#86c2a6; --m-jade:#d39cc4; --m-all:#b9b9b3; --mka:32%;
   --box:"Michroma","Archivo",sans-serif; --sans:"Archivo","Helvetica Neue",Arial,sans-serif; --mono:"DM Mono",ui-monospace,Menlo,monospace;
   --grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .07 0'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#141415; --panel:#1b1b1d; --ink:#efefea; --ink2:#b0b0aa; --ink3:#6f6f6a; --line:#2c2c2f;
-  --accent:#9fbfcc; --accent-soft:#28373e; --pill:#efefea; --pill-ink:#141415; --ok:#6fae93; --warn:#d9a24f; color-scheme:dark}}
+  --accent:#9fbfcc; --accent-soft:#28373e; --pill:#efefea; --pill-ink:#141415; --ok:#6fae93; --warn:#d9a24f; --m-cj:#4c9fd4; --m-swaggy:#e2a23a; --m-audrey:#3fb581; --m-jade:#d26fbd; --m-all:#6c6c6a; --mka:40%; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#141415; --panel:#1b1b1d; --ink:#efefea; --ink2:#b0b0aa; --ink3:#6f6f6a; --line:#2c2c2f;
-  --accent:#9fbfcc; --accent-soft:#28373e; --pill:#efefea; --pill-ink:#141415; --ok:#6fae93; --warn:#d9a24f; color-scheme:dark}
+  --accent:#9fbfcc; --accent-soft:#28373e; --pill:#efefea; --pill-ink:#141415; --ok:#6fae93; --warn:#d9a24f; --m-cj:#4c9fd4; --m-swaggy:#e2a23a; --m-audrey:#3fb581; --m-jade:#d26fbd; --m-all:#6c6c6a; --mka:40%; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:#6f7d82 url("strip/room.jpg") center center/cover no-repeat fixed;color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.45;padding-inline:clamp(16px,6vw,140px);padding-block:32px 100px;min-height:100vh}
 @media (max-width:900px){body{background-attachment:scroll}}
@@ -110,7 +111,7 @@ textarea{min-height:60px;resize:vertical}
 .ls{break-inside:avoid;border-left:3px solid var(--mc);padding:2px 0 2px 12px;margin-bottom:14px}
 .lh{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-bottom:4px}
 .ll{font-size:16px;line-height:1.55;border-radius:4px}
-.mk{padding:.08em .2em;margin:0 -.2em;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone;background:color-mix(in srgb,var(--mk) 32%,transparent)}
+.mk{padding:.08em .2em;margin:0 -.2em;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone;background:color-mix(in srgb,var(--mk) var(--mka),transparent)}
 .mk[style*="--mkg"]{background:var(--mkg)}
 .ll.own{box-shadow:inset 3px 0 0 var(--lc);padding-left:8px;margin-left:-8px}
 .lt{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);margin-left:8px;white-space:nowrap}
@@ -222,7 +223,7 @@ const PEOPLE=["Tino","BJ","Phoi","Happee"];
 const STATUS=["Demo","Writing","Production","Recording","Mix & Master","Happee-Go","Done"];
 const AXES=["Catchy","Lyrics","Vocals","Groove","Vibe"];
 const ROLES=["Lyrics","Melody","Topline","Production","Other"];
-const MEMBERS=[{k:"CJ",c:"#a8c6d2"},{k:"SWAGGY",n:"Swaggy",c:"#e0b267"},{k:"AUDREY",n:"Audrey",c:"#86c2a6"},{k:"JADE",n:"Jade",c:"#d39cc4"}];
+const MEMBERS=[{k:"CJ",c:"var(--m-cj)"},{k:"SWAGGY",n:"Swaggy",c:"var(--m-swaggy)"},{k:"AUDREY",n:"Audrey",c:"var(--m-audrey)"},{k:"JADE",n:"Jade",c:"var(--m-jade)"}];
 let lyrEdit=null,lyrAssign=null,lyrPick="CJ",lyrDraft=null;
 const DEMOS=[{"id": "d01", "title": "Ok Na Ko", "file": "OK N KO_V2_300326_32bit_P2.wav", "date": "2026-03-30", "note": "V2"}, {"id": "d02", "title": "Ok Na Ko (reggaeton idea)", "file": "ok na ko reggaeton idea.mp3", "date": "2026-05-10", "note": "idea"}, {"id": "d03", "title": "Don't Play", "file": "DONT PLAY-cjRAP .mp3", "date": "2026-01-30", "note": "cj rap version"}, {"id": "d04", "title": "1111", "file": "1111 ROUGH DEMO.mp3", "date": "2026-01-29", "note": "rough demo"}, {"id": "d05", "title": "No Rush", "file": "NO RUSH NEW VERSION.mp3", "date": "2026-01-29", "note": "new version"}, {"id": "d06", "title": "On My Way", "file": "ON MY WAY mix1.mp3", "date": "2025-12-26", "note": "mix 1"}, {"id": "d07", "title": "Raya", "file": "RAYA DEMO2.mp3", "date": "2025-11-25", "note": "demo 2"}, {"id": "d08", "title": "Neon Lights", "file": "NEON LIGHTS - 3R Mix V1.mp3", "date": "2025-11-16", "note": "3R mix v1"}, {"id": "d09", "title": "Ignite", "file": "IGNITE -Mix 3R V2.mp3", "date": "2025-11-15", "note": "3R mix v2"}, {"id": "d10", "title": "Ghost", "file": "GHOST DEMO3.mp3", "date": "2025-11-15", "note": "demo 3"}, {"id": "d11", "title": "Don't Mean a Thing", "file": "DONT-MEAN-A-THING-IDEA.mp3", "date": "2025-11-13", "note": "idea"}, {"id": "d12", "title": "Burnin", "file": "BURNIN_DEMO3.mp3", "date": "2025-11-06", "note": "demo 3"}, {"id": "d13", "title": "We Shine", "file": "WE SHINE DEMO.mp3", "date": "2025-11-05", "note": "demo"}, {"id": "d14", "title": "Fadeproof", "file": "FADEPROOF_DEMO2.mp3", "date": "2025-11-04", "note": "demo 2"}, {"id": "d15", "title": "Delulu", "file": "DELULU DEMO.mp3", "date": "2025-11-02", "note": "demo"}, {"id": "d16", "title": "Dreams & Duty", "file": "Dreams & Duty DEMO.mp3", "date": "2025-10-31", "note": "demo"}, {"id": "d17", "title": "Quiet House", "file": "QUIET HOUSE DEMO.mp3", "date": "2025-10-30", "note": "demo"}];
 const SONGS=[
@@ -267,7 +268,7 @@ function whoIn(t){const u=String(t).toUpperCase();if(/\bALL\b/.test(u))return ME
 function headBase(l){return l.trim().replace(/^\[|\]$/g,"").split("(")[0].trim()}
 const LINE_TAG=new RegExp("\\s*\\[("+NAMES_RE+"(?:\\s*\\+\\s*"+NAMES_RE+")*)\\]\\s*$","i");
 function lineTag(l){const m=l.match(LINE_TAG);return m?{text:l.replace(LINE_TAG,""),who:whoIn(m[1]),raw:m[1].toUpperCase()}:{text:l,who:null,raw:""}}
-function mk(html,w){if(!w||!w.length)return html;const cs=w.length===4?["#b9b9b3"]:w.map(k=>MEMBERS.find(m=>m.k===k).c);const g=cs.length===1?cs[0]:`linear-gradient(90deg,${cs.map(c=>`color-mix(in srgb,${c} 32%,transparent)`).join(",")})`;return `<span class="mk" style="--mk:${cs.length===1?g:"transparent"};${cs.length>1?`--mkg:${g}`:""}">${html}</span>`}
+function mk(html,w){if(!w||!w.length)return html;const cs=w.length===4?["var(--m-all)"]:w.map(k=>MEMBERS.find(m=>m.k===k).c);const g=cs.length===1?cs[0]:`linear-gradient(90deg,${cs.map(c=>`color-mix(in srgb,${c} var(--mka),transparent)`).join(",")})`;return `<span class="mk" style="--mk:${cs.length===1?g:"transparent"};${cs.length>1?`--mkg:${g}`:""}">${html}</span>`}
 function mcol(w){return !w||!w.length?"var(--line)":w.length===1?MEMBERS.find(m=>m.k===w[0]).c:"var(--ink)"}
 function setHead(l,k){let t=l.trim().replace(/^\[|\]$/g,"");const m=t.match(/^([^(]*)(\(.*\))?\s*$/);let base=(m?m[1]:t).trim(),paren=m&&m[2]?" "+m[2]:"";
   base=base.replace(new RegExp("\\s*[–-]\\s*"+NAMES_RE+"(?:\\s*[+&,/]\\s*"+NAMES_RE+")*$","i"),"").trim();
