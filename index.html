@@ -109,7 +109,9 @@ textarea{min-height:60px;resize:vertical}
 .lyr{display:grid;gap:14px;margin-top:12px;columns:2 300px;column-gap:28px;display:block}
 .ls{break-inside:avoid;border-left:3px solid var(--mc);padding:2px 0 2px 12px;margin-bottom:14px}
 .lh{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-bottom:4px}
-.ll{font-size:16px;line-height:1.5;border-radius:4px}
+.ll{font-size:16px;line-height:1.55;border-radius:4px}
+.mk{padding:0 .15em;margin:0 -.15em;-webkit-box-decoration-break:clone;box-decoration-break:clone;background:linear-gradient(transparent 38%,color-mix(in srgb,var(--mk) 55%,transparent) 38%,color-mix(in srgb,var(--mk) 55%,transparent) 92%,transparent 92%)}
+.mk[style*="--mkg"]{background:var(--mkg);background-size:100% 54%;background-position:0 78%;background-repeat:no-repeat;opacity:1}
 .ll.own{box-shadow:inset 3px 0 0 var(--lc);padding-left:8px;margin-left:-8px}
 .lt{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);margin-left:8px;white-space:nowrap}
 .tap{cursor:pointer}.tap:hover{background:color-mix(in srgb,var(--ink) 7%,transparent)}
@@ -262,6 +264,7 @@ function whoIn(t){const u=String(t).toUpperCase();if(/\bALL\b/.test(u))return ME
 function headBase(l){return l.trim().replace(/^\[|\]$/g,"").split("(")[0].trim()}
 const LINE_TAG=new RegExp("\\s*\\[("+NAMES_RE+"(?:\\s*\\+\\s*"+NAMES_RE+")*)\\]\\s*$","i");
 function lineTag(l){const m=l.match(LINE_TAG);return m?{text:l.replace(LINE_TAG,""),who:whoIn(m[1]),raw:m[1].toUpperCase()}:{text:l,who:null,raw:""}}
+function mk(html,w){if(!w||!w.length)return html;const cs=w.length===4?["#b9b9b3"]:w.map(k=>MEMBERS.find(m=>m.k===k).c);const g=cs.length===1?cs[0]:`linear-gradient(90deg,${cs.join(",")})`;return `<span class="mk" style="--mk:${cs.length===1?g:"transparent"};${cs.length>1?`--mkg:${g}`:""}">${html}</span>`}
 function mcol(w){return !w||!w.length?"var(--line)":w.length===1?MEMBERS.find(m=>m.k===w[0]).c:"var(--ink)"}
 function setHead(l,k){let t=l.trim().replace(/^\[|\]$/g,"");const m=t.match(/^([^(]*)(\(.*\))?\s*$/);let base=(m?m[1]:t).trim(),paren=m&&m[2]?" "+m[2]:"";
   base=base.replace(new RegExp("\\s*[–-]\\s*"+NAMES_RE+"(?:\\s*[+&,/]\\s*"+NAMES_RE+")*$","i"),"").trim();
@@ -271,7 +274,7 @@ function setLine(l,k){const t=lineTag(l);if(!k||t.raw===k)return t.text;return t
 function lyrHtml(text,assign){const lines=String(text||"").replace(/\r/g,"").split("\n");let cur=[],out="",count={};MEMBERS.forEach(m=>count[m.k]=0);let open=false;
   lines.forEach((l,i)=>{if(isHead(l)){const w=whoIn(headBase(l));cur=w;if(open)out+="</div>";out+=`<div class="ls" style="--mc:${mcol(w)}"><div class="lh${assign?" tap":""}" data-li="${i}">${esc(l.trim().replace(/^\[|\]$/g,""))}</div>`;open=true}
    else if(l.trim()){if(!open){out+=`<div class="ls" style="--mc:var(--line)">`;open=true}const t=lineTag(l);const w=t.who||cur;
-    out+=`<div class="ll${assign?" tap":""}${t.who?" own":""}" data-li="${i}" style="--lc:${mcol(t.who)}">${esc(t.text)}${t.who?`<span class="lt">${esc(t.who.length===4?"ALL":t.who.map(k=>(MEMBERS.find(m=>m.k===k).n||k)).join(" + "))}</span>`:""}</div>`;w.forEach(k=>count[k]++)}});
+    out+=`<div class="ll${assign?" tap":""}${t.who?" own":""}" data-li="${i}" style="--lc:${mcol(t.who)}">${mk(esc(t.text),w)}${t.who?`<span class="lt">${esc(t.who.length===4?"ALL":t.who.map(k=>(MEMBERS.find(m=>m.k===k).n||k)).join(" + "))}</span>`:""}</div>`;w.forEach(k=>count[k]++)}});
   if(open)out+="</div>";const tot=Object.values(count).reduce((a,b)=>a+b,0);
   const split=tot?`<div class="lsplit">${MEMBERS.map(m=>`<span><i style="background:${m.c}"></i>${esc(m.n||m.k)} ${count[m.k]}</span>`).join("")}</div><div class="lbar">${MEMBERS.map(m=>count[m.k]?`<b style="flex:${count[m.k]};background:${m.c}"></b>`:"").join("")}</div>`:"";
   return split+`<div class="lyr">${out}</div>`}
