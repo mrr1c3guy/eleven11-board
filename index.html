@@ -39,6 +39,17 @@ h2{margin:0;font-family:var(--box);font-size:16px;font-weight:400;letter-spacing
 .bar i{flex:1;background:var(--line)}
 .bar i.go{background:var(--accent)}
 .bar i.wip{background:var(--accent-soft)}
+.slots{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+@media (max-width:640px){.slots{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.slot{display:flex;flex-direction:column;align-items:center;gap:6px;border:0;background:none;color:inherit;cursor:pointer;padding:6px 2px;border-radius:8px;min-width:0}
+.slot:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.ring{--p:0;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#161617;background:conic-gradient(var(--accent) calc(var(--p)*1%),color-mix(in srgb,var(--ink) 12%,transparent) 0);-webkit-mask:radial-gradient(circle,transparent 9px,#000 10px);mask:radial-gradient(circle,transparent 9px,#000 10px)}
+.slot.go .ring{-webkit-mask:none;mask:none;background:var(--accent)}
+.slot.empty .ring{background:none;border:1.5px dashed var(--ink3);-webkit-mask:none;mask:none}
+.sn{font-family:var(--box);font-size:9px;text-transform:uppercase;letter-spacing:.03em;text-align:center;line-height:1.25;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot.empty .sn{color:var(--ink3)}
+.leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+.leg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px;background:color-mix(in srgb,var(--ink) 12%,transparent)}.leg i.r50{background:conic-gradient(var(--accent) 50%,color-mix(in srgb,var(--ink) 12%,transparent) 0)}.leg i.go{background:var(--accent)}
 .slots{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-top:4px}
 @media (max-width:640px){.slots{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .slot{display:grid;justify-items:center;gap:6px;border:0;background:none;color:inherit;cursor:pointer;padding:6px 2px;border-radius:8px;min-width:0}
@@ -321,7 +332,7 @@ function render(){
   <div class="top"><div class="brand"><div class="meta"><span class="plus">+</span>debut EP · 6 songs · Tracksetters</div></div>
    <div class="who">${PEOPLE.map(p=>`<button class="pill" data-me="${p}" aria-pressed="${me===p}">${p}</button>`).join("")}<span class="rel"><button class="pill" id="bell" aria-label="Notifications">Alerts${nNew?` <b>${nNew}</b>`:""}</button>${bellOpen?`<div class="bellpop">${items.length?items.map(x=>`<div class="it ${x.ts>seen?"new":""}"><span class="meta">${fmt(x.ts)}</span>${esc(x.text)}</div>`).join(""):`<div class="it empty">Nothing new.</div>`}</div>`:""}</span><button class="pill" id="theme" aria-label="Light or dark">◐</button></div></div>
   <div><h1><span class="brand">ELEVEN<em>11</em></span><small>status board</small></h1></div>
-  <div class="prog"><div class="row"><div class="big">${go}<span style="color:var(--ink3)"> / 6</span></div><div class="meta">Songs with a Happee-Go</div></div></div>
+  <div class="prog"><div class="row"><div class="big">${go}<span style="color:var(--ink3)"> / 6</span></div><div class="meta">Songs with a Happee-Go</div></div><div class="slots">${SONGS.map(s=>{const g=isGo(s),empty=/^Song \d$/.test(s.title),i=Math.max(0,STATUS.indexOf(st(s))),pct=g?100:Math.min(80,i*20);return `<button class="slot ${g?"go":""} ${empty?"empty":""}" data-jump="${s.id}" title="${esc(s.title)}: ${esc(st(s))}" aria-label="${esc(s.title)}: ${esc(st(s))}"><span class="ring" style="--p:${empty?0:pct}">${g?`<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`:""}</span><span class="sn">${empty?"Open slot":esc(s.title)}</span></button>`}).join("")}</div><div class="leg"><span><i class="r0"></i>Demo</span><span><i class="r50"></i>In the works</span><span><i class="go"></i>Happee-Go</span></div></div>
   <section id="songs"><div class="sh"><h2>Songs</h2><span class="meta">Tap a song for details</span></div><div class="tbl">${rows}</div></section>
   <section id="demos">${(()=>{const dp=id=>demoPicks[id]||{};const vis=DEMOS.filter(d=>!dp(d.id).hidden),gone=DEMOS.filter(d=>dp(d.id).hidden);
    const row=(d,i)=>{const x=dp(d.id),pk=x.pick,src=x.audio||"";const op=demoOpenId===d.id;return `<div class="drow ${pk?"on":""} ${op?"open":""}" data-dopen="${d.id}"><span class="nr">${String(i+1).padStart(2,"0")}</span><div class="t">${esc(d.title)}<small>${esc(d.note)} · ${d.date.split("-").reverse().join(".")} · ${esc(d.file)}</small></div><div class="dact"><button class="pill pick ${pk?"on":""}" data-pick="${d.id}">${pk?"Shortlisted":"Shortlist"}</button><button class="dx" data-dx="${d.id}" title="Remove from the list" aria-label="Remove ${esc(d.title)}">×</button></div>${op?(src?`<audio controls preload="none" src="${esc(src)}"></audio>`:x.stored?`<audio controls preload="none" data-stored="${d.id}"${audioCache[d.id]?` src="${audioCache[d.id]}"`:""}></audio>`:`<div class="note dna">No audio yet.</div>`):""}</div>`};
@@ -345,6 +356,7 @@ function bind(){const $=s=>document.querySelector(s),$$=s=>document.querySelecto
   $$("[data-me]").forEach(b=>b.onclick=()=>{me=b.dataset.me;try{localStorage.setItem("e11.name",me)}catch{}render();renderChat()});
   $("#theme").onclick=()=>{const c=document.documentElement.getAttribute("data-theme");const n=c==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n)};
   $("#bell").onclick=e=>{e.stopPropagation();bellOpen=!bellOpen;if(!bellOpen&&me){try{localStorage.setItem(lastSeenKey(),String(Date.now()))}catch{}}render()};
+  $$("[data-jump]").forEach(b=>b.onclick=()=>{openId=b.dataset.jump;render();const r=document.querySelector(`[data-open="${openId}"]`);if(r)r.scrollIntoView({behavior:"smooth",block:"start"})});
   $$("[data-jump]").forEach(b=>b.onclick=()=>{openId=b.dataset.jump;render();const r=document.querySelector(`[data-open="${openId}"]`);if(r)r.scrollIntoView({behavior:"smooth",block:"start"})});
   $$("[data-open]").forEach(r=>r.onclick=()=>{openId=openId===r.dataset.open?null:r.dataset.open;render()});
   const s=SONGS.find(x=>x.id===openId);
