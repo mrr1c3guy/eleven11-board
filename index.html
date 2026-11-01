@@ -255,8 +255,8 @@ function needName(){if(!me){toast("Pick your name at the top first");return true
 function radarSvg(s){const W=300,cx=150,cy=150,R=100,n=AXES.length;const ang=i=>-Math.PI/2+i*2*Math.PI/n;const pt=(i,v)=>[cx+Math.cos(ang(i))*R*v/3,cy+Math.sin(ang(i))*R*v/3];
   const mine=(((demoPicks[s.id]||{}).ratings||{})[me])||[];const A=kc(s.id);
   let g=`<svg viewBox="0 0 ${W} ${W}" role="img" aria-label="Rating Radar">`;
-  [1,2,3].forEach(k=>g+=`<polygon points="${AXES.map((_,i)=>pt(i,k).join(",")).join(" ")}" fill="none" stroke="var(--line)"/>`);
-  AXES.forEach((a,i)=>{const [x,y]=pt(i,3.5),[ex,ey]=pt(i,3);g+=`<line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="var(--line)"/><text x="${x}" y="${y+4}" text-anchor="${Math.abs(x-cx)<10?"middle":x>cx?"start":"end"}" font-size="12" font-weight="600" fill="var(--ink)">${a}</text>`});
+  [1,2,3].forEach(k=>g+=`<polygon points="${AXES.map((_,i)=>pt(i,k).join(",")).join(" ")}" fill="none" stroke="var(--ink3)" stroke-opacity="${k===3?.9:.55}" stroke-width="${k===3?1.6:1.2}"/>`);
+  AXES.forEach((a,i)=>{const [x,y]=pt(i,3.5),[ex,ey]=pt(i,3);g+=`<line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="var(--ink3)" stroke-opacity=".55" stroke-width="1.2"/><text x="${x}" y="${y+4}" text-anchor="${Math.abs(x-cx)<10?"middle":x>cx?"start":"end"}" font-size="12" font-weight="600" fill="var(--ink)">${a}</text>`});
   if(A&&A.score!=null)g+=`<polygon points="${A.ax.map((v,i)=>pt(i,v||0).join(",")).join(" ")}" fill="var(--accent)" fill-opacity=".35" stroke="var(--accent)" stroke-width="2"/>`;
   AXES.forEach((a,i)=>[1,2,3].forEach(k=>{const [x,y]=pt(i,k),on=mine[i]===k;g+=`<g class="hit" data-ax="${i}" data-v="${k}"><circle cx="${x}" cy="${y}" r="13" fill="transparent"/><circle cx="${x}" cy="${y}" r="${on?7:4.5}" fill="${on?"var(--ink)":"var(--bg)"}" stroke="var(--ink3)"/></g>`}));
   return g+"</svg>"}
