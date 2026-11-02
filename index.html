@@ -237,7 +237,8 @@ const SONGS=[
 // ---------- STATE ----------
 let assets=null,playIdx={},db=null,songs={},comments=[],todos=[],events=[],chat=[];
 let me="";try{me=localStorage.getItem("e11.name")||""}catch{}
-let demosOpen=false,demoPicks={},demoOpenId=null,splitEdit=null,splitOpen=null;
+let demosOpen=true;try{demosOpen=localStorage.getItem("e11.demosOpen")!=="0"}catch{}
+let demoPicks={},demoOpenId=null,splitEdit=null,splitOpen=null;
 let openId=null,calMonth=new Date(),chatOpen=false,bellOpen=false,pending=false;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt=ts=>{try{return new Date(ts).toLocaleDateString("en-GB",{day:"2-digit",month:"2-digit"})}catch{return""}};
@@ -346,8 +347,8 @@ function render(){
   <section id="songs"><div class="sh"><h2>Songs</h2><span class="meta">Tap a song for details</span></div><div class="tbl">${rows}</div></section>
   <section id="demos">${(()=>{const dp=id=>demoPicks[id]||{};const vis=DEMOS.filter(d=>!dp(d.id).hidden),gone=DEMOS.filter(d=>dp(d.id).hidden);
    const row=(d,i)=>{const x=dp(d.id),pk=x.pick,src=x.audio||"";const op=demoOpenId===d.id;return `<div class="drow ${pk?"on":""} ${op?"open":""}" data-dopen="${d.id}"><span class="nr">${String(i+1).padStart(2,"0")}</span><div class="t">${esc(d.title)}${(()=>{const n=comments.filter(c=>c.song===d.id).length;return n?`<span class="dcn">${n} feedback</span>`:""})()}${(()=>{const A=kc(d.id),on=A&&A.score!=null;return `<span class="dsc" data-dsc="${d.id}"${on?"":" hidden"}>${on?A.score.toFixed(1)+"/11":""}</span>`})()}<small>${esc(d.note)} · ${d.date.split("-").reverse().join(".")} · ${esc(d.file)}</small></div><div class="dact"><button class="pill pick ${pk?"on":""}" data-pick="${d.id}">${pk?"Shortlisted":"Shortlist"}</button><button class="dx" data-dx="${d.id}" title="Remove from the list" aria-label="Remove ${esc(d.title)}">×</button></div>${op?(src?`<audio controls preload="none" src="${esc(src)}"></audio>`:x.stored?`<audio controls preload="none" data-stored="${d.id}"${audioCache[d.id]?` src="${audioCache[d.id]}"`:""}></audio>`:`<div class="note dna">No audio yet.</div>`):""}${op?dfbHtml(d):""}</div>`};
-   return `<div class="sh"><h2>Demos</h2><div style="display:flex;gap:8px;align-items:center"><span class="meta">${vis.length} songs · ${vis.filter(d=>dp(d.id).pick).length} shortlisted · Tap a demo for details</span></div></div>
-  ${true?`<div class="meta" style="margin-top:-6px">Newest version of each song from the Dropbox demo folder. Shortlist what should move up to the EP, tap × to take a song off the list.</div><div class="tbl">${vis.map(row).join("")}</div>
+   return `<div class="sh"><button class="sptog" id="dtog" aria-expanded="${demosOpen}"><h2>Demos</h2><span class="chev${demosOpen?" open":""}" style="font-size:24px">›</span></button><div style="display:flex;gap:8px;align-items:center"><span class="meta">${vis.length} songs · ${vis.filter(d=>dp(d.id).pick).length} shortlisted${demosOpen?" · Tap a demo for details":""}</span></div></div>
+  ${demosOpen?`<div class="meta" style="margin-top:-6px">Newest version of each song from the Dropbox demo folder. Shortlist what should move up to the EP, tap × to take a song off the list.</div><div class="tbl">${vis.map(row).join("")}</div>
 `:""}`})()}
   </section>
   <section><div class="sh"><h2>To do</h2><span class="meta">${td.filter(t=>!t.done).length} open</span></div>
@@ -389,6 +390,7 @@ function bind(){const $=s=>document.querySelector(s),$$=s=>document.querySelecto
   $$("[data-td]").forEach(c=>c.onchange=()=>{const t=todos.find(x=>x.id===c.dataset.td);if(t)save("todos/"+t.id,Object.assign({},t,{done:c.checked,doneBy:me}))});
   $$("[data-tx]").forEach(b=>b.onclick=async()=>{try{await db.doc("todos/"+b.dataset.tx).delete()}catch{toast("Could not delete")}});
   $("#tb").onclick=async()=>{if(needName())return;const t=$("#tt").value.trim();if(!t||!db)return;try{await db.collection("todos").add({text:t,who:$("#tw").value,by:me,done:false,ts:Date.now()});$("#tt").value=""}catch{toast("Could not save")}};
+  $("#dtog").onclick=()=>{demosOpen=!demosOpen;try{localStorage.setItem("e11.demosOpen",demosOpen?"1":"0")}catch{}document.querySelectorAll("#demos audio").forEach(x=>x.pause());render()};
   $$("[data-dopen]").forEach(r=>r.onclick=e=>{if(!e.target.isConnected||e.target.closest("button,audio,textarea,input,.dfb"))return;const id=r.dataset.dopen;document.querySelectorAll("#demos audio").forEach(x=>x.pause());demoOpenId=demoOpenId===id?null:id;render()});
   {const od=DEMOS.find(d=>d.id===demoOpenId);if(od)bindRadar(od)}
   $$("[data-dcb]").forEach(b=>b.onclick=async()=>{if(needName())return;const id=b.dataset.dcb;const ta=document.querySelector(`[data-dct="${id}"]`);const t=ta.value.trim();if(!t||!db)return;try{await db.collection("comments").add({song:id,text:t,name:me,ts:Date.now()});ta.value="";ta.blur();toast("Saved")}catch{toast("Could not save")}});
