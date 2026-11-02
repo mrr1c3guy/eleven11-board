@@ -242,6 +242,7 @@ let openId=null,calMonth=new Date(),chatOpen=false,bellOpen=false,pending=false;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt=ts=>{try{return new Date(ts).toLocaleDateString("en-GB",{day:"2-digit",month:"2-digit"})}catch{return""}};
 const st=s=>{const v=(songs[s.id]&&songs[s.id].status)||"Demo";return v==="Vocals"?"Recording":v};
+const isFx=s=>{const d=songs[s.id]||{};return d.focus!=null?!!d.focus:!!s.focus};
 const isGo=s=>["Happee-Go","Done"].includes(st(s));
 const lastSeenKey=()=>"e11.seen."+me;
 const getSeen=()=>{try{return +localStorage.getItem(lastSeenKey())||Date.now()-7*864e5}catch{return 0}};
@@ -314,7 +315,7 @@ function detail(s){const d=songs[s.id]||{};const vs=d.versions||[];const pv=vs[p
   return `<div class="det">
   <div class="col">
    <div><h4>Listen</h4>${d.audio?`<audio controls preload="none" src="${esc(d.audio)}"></audio>`:d.stored?`<audio controls preload="none" data-stored="${s.id}"${audioCache[s.id]?` src="${audioCache[s.id]}"`:""}></audio>`:`<div class="empty">Audio coming soon.</div>`}${(d.file??s.file)?`<div class="lfile">${esc(d.file??s.file)}</div>`:""}</div>
-   <div><h4>Status</h4><div class="stat">${STATUS.map(x=>`<button class="pill" data-st="${x}" aria-pressed="${st(s)===x}">${x}</button>`).join("")}</div><div class="note" style="margin-top:6px">Only Happee can set Happee-Go and Done.</div></div>
+   <div><h4>Status</h4><div class="stat">${STATUS.map(x=>`<button class="pill" data-st="${x}" aria-pressed="${st(s)===x}">${x}</button>`).join("")}</div><div class="note" style="margin-top:6px">Only Happee can set Happee-Go and Done.</div><button class="pill fxt" id="fxt" aria-pressed="${isFx(s)}" style="margin-top:10px">${isFx(s)?"Focus track ✓":"Make focus track"}</button></div>
    <div><h4>Next step</h4><input type="text" id="nx" value="${esc(d.next||"")}" placeholder="What happens next?"></div>
    <div>${splitOpen!==s.id&&splitEdit!==s.id?`<button class="sptog" id="spopen" aria-expanded="false"><h4>Publishing Splits</h4><span class="chev">›</span></button>`:`<div class="sph4"><button class="sptog" id="spclose" aria-expanded="true"><h4>Publishing Splits</h4><span class="chev open">›</span></button>${splitEdit===s.id?`<button class="pill on" id="spdone">Save</button>`:`<button class="pen" id="spedit" aria-label="Edit splits" title="Edit splits"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`}</div>${splitsHtml(sp,splitEdit===s.id)}`}</div>
   </div>
@@ -335,7 +336,7 @@ function render(){
   pending=false; const go=SONGS.filter(isGo).length;
   const seen=getSeen(),items=notifs();const nNew=items.filter(x=>x.ts>seen).length;
   const rows=SONGS.map((s,i)=>{const k=kc(s.id);const sp=(songs[s.id]||{}).splits||[];
-   return `<div class="srow" data-open="${s.id}"><span class="nr">${String(i+1).padStart(2,"0")}</span><div class="t">${esc(s.title)}${s.focus?`<span class="fx">Focus</span>`:""}</div><span class="st"><span class="tag ${isGo(s)?"go":st(s)==="Demo"?"soft":""}">${isGo(s)?`<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px;margin-right:5px"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`:""}${st(s)}</span></span><span class="kc"></span></div>${openId===s.id?detail(s):""}`}).join("");
+   return `<div class="srow" data-open="${s.id}"><span class="nr">${String(i+1).padStart(2,"0")}</span><div class="t">${esc(s.title)}${isFx(s)?`<span class="fx">Focus</span>`:""}</div><span class="st"><span class="tag ${isGo(s)?"go":st(s)==="Demo"?"soft":""}">${isGo(s)?`<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px;margin-right:5px"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`:""}${st(s)}</span></span><span class="kc"></span></div>${openId===s.id?detail(s):""}`}).join("");
   const td=[...todos].sort((a,b)=>(a.done?1:0)-(b.done?1:0)||a.ts-b.ts);
   document.getElementById("app").innerHTML=`
   <div class="top"><div class="brand"><div class="meta"><span class="plus">+</span>debut EP · 6 songs · Tracksetters</div></div>
@@ -370,6 +371,7 @@ function bind(){const $=s=>document.querySelector(s),$$=s=>document.querySelecto
   $$("[data-open]").forEach(r=>r.onclick=()=>{openId=openId===r.dataset.open?null:r.dataset.open;render()});
   const s=SONGS.find(x=>x.id===openId);
   if(s){
+   $("#fxt").onclick=()=>{if(needName())return;patchSong(s.id,{focus:!isFx(s)})};
    $$("[data-st]").forEach(b=>b.onclick=()=>{if(needName())return;const v=b.dataset.st;if(["Happee-Go","Done"].includes(v)&&me!=="Happee"){toast("Only Happee can set Happee-Go");return}patchSong(s.id,{status:v},true);$$("[data-st]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.st===v));const row=document.querySelector(`[data-open="${s.id}"] .tag`);if(row){row.textContent=v;row.className="tag "+(["Happee-Go","Done"].includes(v)?"go":v==="Demo"?"soft":"")}});
    $("#nx").onchange=e=>patchSong(s.id,{next:e.target.value.trim()});
    const sp=()=>((songs[s.id]||{}).splits||[]).map(x=>Object.assign({},x));
