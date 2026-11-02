@@ -104,6 +104,7 @@ textarea{min-height:60px;resize:vertical}
 .warn{color:var(--warn)}
 .cm{border-left:2px solid var(--line);padding:2px 0 2px 10px;display:grid;gap:2px;font-size:14px}
 .cm .meta{font-size:10px}
+.cdel{margin-left:8px;border:0;background:none;color:var(--ink3);cursor:pointer;font-size:13px;line-height:1;padding:0 2px;font-family:var(--mono)}.cdel:hover{color:var(--ink)}.cdel.sure{color:#c0392b;font-size:10px;letter-spacing:.06em;text-transform:uppercase}
 .cms{display:grid;gap:10px}
 .lfile{font-family:var(--mono);font-size:9px;color:var(--ink3);opacity:.6;letter-spacing:.04em;margin-top:4px;overflow-wrap:anywhere}
 .lwrap{grid-column:1/-1;border-top:1px solid var(--line);padding-top:18px}
@@ -321,7 +322,7 @@ function detail(s){const d=songs[s.id]||{};const vs=d.versions||[];const pv=vs[p
    <div>${splitOpen!==s.id&&splitEdit!==s.id?`<button class="sptog" id="spopen" aria-expanded="false"><h4>Publishing Splits</h4><span class="chev">›</span></button>`:`<div class="sph4"><button class="sptog" id="spclose" aria-expanded="true"><h4>Publishing Splits</h4><span class="chev open">›</span></button>${splitEdit===s.id?`<button class="pill on" id="spdone">Save</button>`:`<button class="pen" id="spedit" aria-label="Edit splits" title="Edit splits"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`}</div>${splitsHtml(sp,splitEdit===s.id)}`}</div>
   </div>
   <div class="col">
-   <div><h4>Feedback</h4><div class="cms">${cm.length?cm.map(c=>`<div class="cm"><span class="meta">${esc(c.name)} · ${fmt(c.ts)}</span>${esc(c.text)}</div>`).join(""):`<div class="empty">No feedback yet.</div>`}</div>
+   <div><h4>Feedback</h4><div class="cms">${cm.length?cm.map(cmHtml).join(""):`<div class="empty">No feedback yet.</div>`}</div>
     <textarea id="ct" placeholder="Feedback on ${esc(s.title)}"></textarea><div style="margin-top:6px"><button class="pill on" id="cb">Save</button></div></div>
   </div>${lyrBlock(s,d)}</div>`}
 function calHtml(){const y=calMonth.getFullYear(),m=calMonth.getMonth();const first=new Date(y,m,1);const off=(first.getDay()+6)%7;const start=new Date(y,m,1-off);const today=new Date().toDateString();
@@ -408,8 +409,12 @@ async function loadStored(id){if(audioCache[id])return audioCache[id];if(audioLo
     const bufs=parts.map(b64=>{const bin=atob(b64);const u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);return u8});
     return audioCache[id]=URL.createObjectURL(new Blob(bufs,{type:m.type||"audio/mpeg"}))})();
   try{return await audioLoading[id]}finally{delete audioLoading[id]}}
+function cmHtml(c){return `<div class="cm"><span class="meta">${esc(c.name)} · ${fmt(c.ts)}${c.name===me&&c.id?`<button class="cdel" data-cdel="${c.id}" title="Delete" aria-label="Delete your feedback">×</button>`:""}</span>${esc(c.text)}</div>`}
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-cdel]");if(!b)return;e.stopPropagation();
+  if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Delete?";b.classList.add("sure");setTimeout(()=>{if(b.isConnected){b.dataset.sure="";b.textContent="×";b.classList.remove("sure")}},3000);return}
+  try{await db.doc("comments/"+b.dataset.cdel).delete();toast("Deleted")}catch{toast("Could not delete")}},true);
 function dfbHtml(d){const cm=comments.filter(c=>c.song===d.id).sort((a,b)=>a.ts-b.ts);const A=kc(d.id);
-  return `<div class="dfb"><div><h4>Rating ${A&&A.score!=null?"· "+A.score.toFixed(1)+" / 11":""}</h4><div class="radar" data-rid="${d.id}">${radarSvg(d)}<div class="note">Tap each axis: inner = not there yet, outer = nailed it. Average of everyone, out of 11.</div></div></div><h4>Feedback</h4><div class="cms">${cm.length?cm.map(c=>`<div class="cm"><span class="meta">${esc(c.name)} · ${fmt(c.ts)}</span>${esc(c.text)}</div>`).join(""):`<div class="empty">No feedback yet.</div>`}</div>
+  return `<div class="dfb"><div><h4>Rating ${A&&A.score!=null?"· "+A.score.toFixed(1)+" / 11":""}</h4><div class="radar" data-rid="${d.id}">${radarSvg(d)}<div class="note">Tap each axis: inner = not there yet, outer = nailed it. Average of everyone, out of 11.</div></div></div><h4>Feedback</h4><div class="cms">${cm.length?cm.map(cmHtml).join(""):`<div class="empty">No feedback yet.</div>`}</div>
   <textarea data-dct="${d.id}" placeholder="Feedback on ${esc(d.title)}"></textarea><div style="margin-top:6px"><button class="pill on" data-dcb="${d.id}">Save</button></div></div>`}
 function bindStored(){document.querySelectorAll("audio[data-stored]:not([src])").forEach(a=>{const n=document.createElement("div");n.className="note dna";n.textContent="Loading…";a.after(n);
   loadStored(a.dataset.stored).then(u=>{a.src=u;n.remove()}).catch(()=>{n.textContent="Could not load this demo."})})}
