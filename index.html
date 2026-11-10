@@ -197,7 +197,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border
 #gate{min-height:80vh;display:grid;place-items:center}
 .gbox{display:grid;gap:14px;width:min(420px,100%);background:color-mix(in srgb,var(--bg) 90%,transparent) var(--grain);padding:clamp(22px,5vw,40px);box-shadow:0 40px 90px rgba(0,0,0,.4)}
 .gbox h1{font-size:clamp(24px,7.5vw,40px)}
-.gwho{display:grid;gap:8px}.gnames{display:flex;flex-wrap:wrap;gap:8px}.gnames .pill{flex:1 1 0;min-width:70px;padding:9px 10px;font-size:14px}
+.gwho{display:grid;gap:8px}.gl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);margin-top:4px}.gnames{display:flex;flex-wrap:wrap;gap:8px}.gnames .pill{flex:1 1 0;min-width:70px;padding:9px 10px;font-size:14px}
 .gbox input{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:16px}
 .mini{position:fixed;left:max(16px,env(safe-area-inset-left));right:calc(max(16px,env(safe-area-inset-right)) + 66px);bottom:max(16px,env(safe-area-inset-bottom));max-width:640px;margin:0 auto;z-index:49;display:grid;grid-template-columns:40px 36px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 14px 8px 8px;background:var(--pill);color:var(--pill-ink);border-radius:999px;box-shadow:0 12px 30px rgba(0,0,0,.35)}
 .mini button{border:0;background:none;color:inherit;cursor:pointer;font:inherit}
@@ -210,7 +210,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
-<div id="gate" hidden><form id="gf" class="gbox"><div class="meta"><span class="plus">+</span>Tracksetters</div><h1>ELEVEN<em>11</em><small>status board</small></h1><div class="gwho"><div class="meta">Who are you?</div><div class="gnames" id="gn"></div></div><input type="password" id="gp" placeholder="Team password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" required><button class="pill on" type="submit">Enter</button><div class="note warn" id="gm" aria-live="polite"></div></form></div>
+<div id="gate" hidden><form id="gf" class="gbox"><div class="meta"><span class="plus">+</span>Tracksetters</div><h1>ELEVEN<em>11</em><small>status board</small></h1><div class="gwho"><div class="meta">Who are you?</div><div id="gn" style="display:grid;gap:8px"></div></div><input type="password" id="gp" placeholder="Team password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" required><button class="pill on" type="submit">Enter</button><div class="note warn" id="gm" aria-live="polite"></div></form></div>
 <div class="wrap" id="app" hidden></div>
 <button class="fab" id="fab" aria-label="Open chat" hidden><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/></svg><span class="badge" id="fbadge" hidden></span></button>
 <div class="mini" id="mini" hidden><button id="mpp" aria-label="Play or pause"></button><button id="mbk" class="mbk" aria-label="Back 5 seconds">−5</button><div class="mmid"><div class="mt" id="mt"></div><input type="range" id="mseek" min="0" max="1000" value="0" aria-label="Position"></div><span class="mtime" id="mtime">0:00</span></div>
@@ -222,7 +222,7 @@ footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border
 <script src="config.js"></script>
 <script>
 // ---------- STATIC DATA ----------
-const PEOPLE=["Tino","BJ","Phoi","Happee"];
+const TEAM=["Tino","BJ","Phoi","Happee"],GIRLS=["CJ","Swaggy","Audrey","Jade"],PEOPLE=[...TEAM,...GIRLS];
 const STATUS=["Demo","Writing","Production","Recording","Mix & Master","Happee-Go","Done"];
 const AXES=["Catchy","Lyrics","Vocals","Groove","Vibe"];
 const ROLES=["Lyrics","Melody","Topline","Production","Other"];
@@ -256,7 +256,7 @@ function patchSong(id,p,quiet){songs[id]=Object.assign({},songs[id],p,{ts:Date.n
 function refreshRadar(s){const box=document.querySelector(`.radar[data-rid="${s.id}"]`);if(!box)return;const svg=box.querySelector("svg");if(svg)svg.outerHTML=radarSvg(s);const A=kc(s.id);const h=box.parentElement.querySelector("h4");if(h)h.textContent="Rating "+(A&&A.score!=null?"· "+A.score.toFixed(1)+" / 11":"");const b=document.querySelector(`[data-dsc="${s.id}"]`);if(b){b.textContent=A&&A.score!=null?A.score.toFixed(1)+"/11":"";b.hidden=!(A&&A.score!=null)}bindRadar(s)}
 function bindRadar(s){document.querySelectorAll(`.radar[data-rid="${s.id}"] .hit`).forEach(h=>h.onclick=e=>{e.stopPropagation();if(needName())return;const r=Object.assign({},(demoPicks[s.id]||{}).ratings);const mine=(r[me]||[]).slice();const i=+h.dataset.ax,v=+h.dataset.v;mine[i]=mine[i]===v?null:v;r[me]=mine;demoPicks[s.id]=Object.assign({},demoPicks[s.id],{ratings:r});save("demopicks/"+s.id,demoPicks[s.id]);refreshRadar(s)})}
 let tt;function toast(m){let t=document.getElementById("toast");if(!t){t=document.createElement("div");t.id="toast";t.style.cssText="position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--pill);color:var(--pill-ink);padding:8px 16px;border-radius:999px;font-size:13px;z-index:99";document.body.appendChild(t)}t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2200)}
-function needName(){if(!me){toast("Pick your name at the top first");return true}return false}
+function needName(){if(!me){gPick="";showGate(true);return true}return false}
 // ---------- RENDER ----------
 function radarSvg(s){const W=300,cx=150,cy=150,R=100,n=AXES.length;const ang=i=>-Math.PI/2+i*2*Math.PI/n;const pt=(i,v)=>[cx+Math.cos(ang(i))*R*v/3,cy+Math.sin(ang(i))*R*v/3];
   const mine=(((demoPicks[s.id]||{}).ratings||{})[me])||[];const A=kc(s.id);
@@ -342,7 +342,7 @@ function render(){
   const td=[...todos].sort((a,b)=>(a.done?1:0)-(b.done?1:0)||a.ts-b.ts);
   document.getElementById("app").innerHTML=`
   <div class="top"><div class="brand"><div class="meta"><span class="plus">+</span>debut EP · 6 songs · Tracksetters</div></div>
-   <div class="who">${PEOPLE.map(p=>`<button class="pill" data-me="${p}" aria-pressed="${me===p}">${p}</button>`).join("")}<span class="rel"><button class="pill" id="bell" aria-label="Notifications">Alerts${nNew?` <b>${nNew}</b>`:""}</button>${bellOpen?`<div class="bellpop">${items.length?items.map(x=>`<div class="it ${x.ts>seen?"new":""}"><span class="meta">${fmt(x.ts)}</span>${esc(x.text)}</div>`).join(""):`<div class="it empty">Nothing new.</div>`}</div>`:""}</span><button class="pill" id="theme" aria-label="Light or dark">◐</button></div></div>
+   <div class="who"><button class="pill" id="whoami" aria-pressed="true" title="Switch name">${esc(me)}</button><span class="rel"><button class="pill" id="bell" aria-label="Notifications">Alerts${nNew?` <b>${nNew}</b>`:""}</button>${bellOpen?`<div class="bellpop">${items.length?items.map(x=>`<div class="it ${x.ts>seen?"new":""}"><span class="meta">${fmt(x.ts)}</span>${esc(x.text)}</div>`).join(""):`<div class="it empty">Nothing new.</div>`}</div>`:""}</span><button class="pill" id="theme" aria-label="Light or dark">◐</button></div></div>
   <div><h1><span class="brand">ELEVEN<em>11</em></span><small>status board</small></h1></div>
   <div class="prog"><div class="row"><div class="big">${go}<span style="color:var(--ink3)"> / 6</span></div><div class="meta">Songs with a Happee-Go</div></div><div class="slots">${SONGS.map(s=>{const g=isGo(s),empty=/^Song \d$/.test(s.title),i=Math.max(0,STATUS.indexOf(st(s))),pct=g?100:Math.min(80,i*20);return `<button class="slot ${g?"go":""} ${empty?"empty":""}" data-jump="${s.id}" title="${esc(s.title)}: ${esc(st(s))}" aria-label="${esc(s.title)}: ${esc(st(s))}"><span class="ring" style="--p:${empty?0:pct}">${g?`<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`:""}</span><span class="sn">${empty?"Open slot":esc(s.title)}</span></button>`}).join("")}</div><div class="leg"><span><i class="r0"></i>Demo</span><span><i class="r50"></i>In the works</span><span><i class="go"></i>Happee-Go</span></div></div>
   <section id="songs"><div class="sh"><h2>Songs</h2><span class="meta">Tap a song for details</span></div><div class="tbl">${rows}</div></section>
@@ -365,7 +365,7 @@ function notifs(){const meL=me.toLowerCase();const o=[];
   SONGS.forEach(s=>{const d=songs[s.id];if(d&&d.ts&&d.by&&d.by.toLowerCase()!==meL&&d.status)o.push({ts:d.ts,text:`${d.by} set ${s.title} to ${d.status}`})});
   return o.sort((a,b)=>b.ts-a.ts).slice(0,25)}
 function bind(){const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
-  $$("[data-me]").forEach(b=>b.onclick=()=>{me=b.dataset.me;try{localStorage.setItem("e11.name",me)}catch{}render();renderChat()});
+  $("#whoami").onclick=()=>{gPick="";showGate(true)};
   $("#theme").onclick=()=>{const c=document.documentElement.getAttribute("data-theme");const n=c==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n)};
   $("#bell").onclick=e=>{e.stopPropagation();bellOpen=!bellOpen;if(!bellOpen&&me){try{localStorage.setItem(lastSeenKey(),String(Date.now()))}catch{}}render()};
   $$("[data-jump]").forEach(b=>b.onclick=()=>{openId=b.dataset.jump;render();const r=document.querySelector(`[data-open="${openId}"]`);if(r)r.scrollIntoView({behavior:"smooth",block:"start"})});
@@ -460,7 +460,7 @@ function startData(){
 }
 const gate=document.getElementById("gate");
 let gPick="";
-function gateNames(){const g=document.getElementById("gn");g.innerHTML=PEOPLE.map(p=>`<button type="button" class="pill" data-gn="${p}" aria-pressed="${gPick===p}">${p}</button>`).join("");g.querySelectorAll("[data-gn]").forEach(b=>b.onclick=()=>{gPick=b.dataset.gn;gateNames();document.getElementById("gm").textContent="";const pw=document.getElementById("gp");if(!pw.hidden)pw.focus()})}
+function gateNames(){const g=document.getElementById("gn");const row=(l,a)=>`<div class="gl">${l}</div><div class="gnames">${a.map(p=>`<button type="button" class="pill" data-gn="${p}" aria-pressed="${gPick===p}">${p}</button>`).join("")}</div>`;g.innerHTML=row("Team",TEAM)+row("ELEVEN11",GIRLS);g.querySelectorAll("[data-gn]").forEach(b=>b.onclick=()=>{gPick=b.dataset.gn;gateNames();document.getElementById("gm").textContent="";const pw=document.getElementById("gp");if(!pw.hidden)pw.focus()})}
 function setMe(n){me=n;try{localStorage.setItem("e11.name",me)}catch{}}
 function showApp(){gate.hidden=true;document.getElementById("app").hidden=false;if(!db)startData();else{render();renderChat()}}
 function showGate(namesOnly){const pw=document.getElementById("gp"),b=document.querySelector("#gf button[type=submit]");pw.hidden=namesOnly;pw.required=false;b.textContent=namesOnly?"Continue":"Enter";gateNames();gate.hidden=false;document.getElementById("app").hidden=true;document.getElementById("fab").hidden=true}
